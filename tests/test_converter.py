@@ -22,7 +22,7 @@ def array(*paths: str, **kwargs) -> np.ndarray:
 
 @pytest.fixture()
 def converter() -> GRMDataConverter:
-    return GRMDataConverter(df("input", "response.csv"))
+    return GRMDataConverter(df("input", "response.csv"), df("input", "level.csv"))
 
 
 def test_make_item_array(converter):
@@ -43,6 +43,13 @@ def test_make_response_array(converter):
     numpy.testing.assert_array_equal(
         converter.make_response_array(),
         array("output", "response_array.csv", dtype=int)
+    )
+
+
+def test_make_level_array(converter):
+    numpy.testing.assert_array_equal(
+        converter.make_level_array(),
+        array("output", "level_array.csv", dtype=int)
     )
 
 

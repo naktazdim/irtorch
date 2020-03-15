@@ -3,15 +3,22 @@ import pandas as pd
 
 
 class GRMDataConverter(object):
-    def __init__(self, response_df: pd.DataFrame, n_grades: int = None):
+    def __init__(self,
+                 response_df: pd.DataFrame,
+                 level_df: pd.DataFrame,
+                 n_grades: int = None):
         """
 
         :param response_df: columns=["item", "person", "response"]
+        :param level_df: columns=["item", "level"]
         :param n_grades: 項目数。指定しない場合は response の最大値
         """
         assert "item" in response_df.columns
         assert "person" in response_df.columns
         assert "response" in response_df.columns
+
+        assert "item" in level_df.columns
+        assert "level" in level_df.columns
 
         assert np.issubdtype(response_df.response.dtype, np.integer)
         assert response_df.response.min() >= 1
@@ -23,10 +30,18 @@ class GRMDataConverter(object):
         self.item_category = self.response_df.item.dtype
         self.person_category = self.response_df.person.dtype
 
+        self.level_df = (
+            level_df[level_df["item"].isin(self.item_category.categories)]
+            .astype({"item": self.item_category, "level": "category"})
+        )
+
+        self.level_category = self.level_df.level.dtype
+
         self.n_items = len(self.item_category.categories)
         self.n_persons = len(self.person_category.categories)
         self.n_responses = len(response_df)
         self.n_grades = n_grades or response_df.response.max()
+        self.n_levels = len(self.level_category.categories)
 
     def make_item_array(self) -> np.ndarray:
         """
@@ -48,6 +63,16 @@ class GRMDataConverter(object):
         :return: shape=(n_responses,)
         """
         return self.response_df.response.values
+
+    def make_level_array(self) -> np.ndarray:
+        """
+
+        :return: shape=(*, 2)
+        """
+        return np.c_[
+            self.level_df.item.cat.codes.values,
+            self.level_df.level.cat.codes.values
+        ]
 
     def _make_a_df_base(self) -> pd.DataFrame:
         return pd.DataFrame(

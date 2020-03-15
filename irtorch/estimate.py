@@ -17,7 +17,8 @@ class GRMEstimator(pl.LightningModule):
                  ):
         super(GRMEstimator, self).__init__()
 
-        self.converter = GRMDataConverter(response_df)
+        level_df = pd.DataFrame(columns=["item", "level"])  # 仮
+        self.converter = GRMDataConverter(response_df, level_df)
 
         self.model = GRMMAPModule(
             n_items=self.converter.n_items,
