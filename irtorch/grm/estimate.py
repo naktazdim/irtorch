@@ -69,6 +69,19 @@ class GRMEstimator(pl.LightningModule):
         self.converter.make_t_df(self.model.t.detach().numpy()).to_csv(dir_path / "t.csv", index=False)
 
 
+class OutputEstimates(pl.Callback):
+    def __init__(self, dir_path: str, estimator: GRMEstimator):
+        self.dir_path = dir_path
+        self.estimator = estimator
+        self.best = -np.inf
+
+    def on_validation_end(self, trainer: pl.Trainer, _):
+        log_posterior = trainer.callback_metrics.get("log_posterior")
+        if log_posterior > self.best:
+            self.best = log_posterior
+            self.estimator.output_results(self.dir_path)
+
+
 def main():
     p = argparse.ArgumentParser()
     p.add_argument("response", type=str)
@@ -80,11 +93,11 @@ def main():
 
     response_df = pd.read_csv(args.response)
     estimator = GRMEstimator(response_df)
+    output_estimates = OutputEstimates(args.out_dir, estimator)
 
-    trainer = pl.Trainer(default_save_path=args.out_dir, max_epochs=1)
+    trainer = pl.Trainer(default_save_path=args.out_dir, callbacks=[output_estimates])
     trainer.fit(estimator)
-    estimator.output_results(args.out_dir)
-
+    
 
 if __name__ == "__main__":
     main()
