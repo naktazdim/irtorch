@@ -8,15 +8,8 @@ from .prior import GaussianPrior
 from .likelihood import log_likelihood2
 
 
-def log_normal(parameter: torch.Tensor, prior: GaussianPrior) -> Tensor:
-    # 正規化項 (1/√(2π)σ) は推定に影響しないので省略してある
-    prior_mean = torch.from_numpy(prior.mean).float()
-    prior_std = torch.from_numpy(prior.std).float()
-    return -(torch.sum(((parameter - prior_mean) / prior_std) ** 2)) / 2
-
-
-def positive(tensor: Tensor, eps=1.0e-5) -> Tensor:
-    return F.softplus(tensor) + eps  # ReLU だとうまくいかない (おそらく勾配消失のせい)
+def positive(tensor: Tensor) -> Tensor:
+    return F.softplus(tensor)  # ReLU + eps とかだとうまくいかない (おそらく勾配消失のせい)
 
 
 class GRMMAPModule(nn.Module):
@@ -38,9 +31,9 @@ class GRMMAPModule(nn.Module):
         self.t_ = p(t_prior.mean)
 
         # その他
-        self.a_prior = a_prior
-        self.b_prior = b_prior
-        self.t_prior = t_prior
+        self.a_prior = a_prior.to_tensors()
+        self.b_prior = b_prior.to_tensors()
+        self.t_prior = t_prior.to_tensors()
         self.num_responses_total = num_responses_total
 
     @property
@@ -67,7 +60,7 @@ class GRMMAPModule(nn.Module):
         a, b, t = self.a, self.b, self.t
         item_index, person_index, response_index = indices[:, 0], indices[:, 1], indices[:, 2]
 
-        log_prior = log_normal(a, self.a_prior) + log_normal(b, self.b_prior) + log_normal(t, self.t_prior)
+        log_prior = self.a_prior.log_normal(a) + self.b_prior.log_normal(b) + self.t_prior.log_normal(t)
         log_likelihood = log_likelihood2(a, b, t, item_index, person_index, response_index)
 
         # SGDでデータの一部を渡すことを想定してpriorに補正をかけている
