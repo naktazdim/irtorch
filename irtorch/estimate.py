@@ -88,6 +88,7 @@ def main():
     p.add_argument("--a-prior", type=str)
     p.add_argument("--b-prior", type=str)
     p.add_argument("--t-prior", type=str)
+    p.add_argument("-n", "--n-iter", type=int, default=1000)
     p.add_argument("-o", "--out-dir", type=str)
     args = p.parse_args()
 
@@ -95,7 +96,12 @@ def main():
     estimator = GRMEstimator(response_df)
     output_estimates = OutputEstimates(args.out_dir, estimator)
 
-    trainer = pl.Trainer(default_save_path=args.out_dir, callbacks=[output_estimates], checkpoint_callback=False)
+    trainer = pl.Trainer(
+        default_save_path=args.out_dir,
+        callbacks=[output_estimates],
+        checkpoint_callback=False,
+        max_epochs=args.n_iter
+    )
     trainer.fit(estimator)
 
 
