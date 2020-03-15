@@ -89,7 +89,7 @@ def estimate(
         t_prior_df: pd.DataFrame = None,
         n_iter: int = 1000
 ):
-    estimator = GRMEstimator(response_df)
+    estimator = GRMEstimator(response_df, a_prior_df, b_prior_df, t_prior_df)
     output_estimates = OutputEstimates(out_dir, estimator)
 
     trainer = pl.Trainer(
