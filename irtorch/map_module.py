@@ -1,15 +1,20 @@
-import numpy as np
+from typing import Union
+
 import torch
 from torch import Tensor
 import torch.nn as nn
 import torch.nn.functional as F
 
-from .prior import GaussianPrior
 from .likelihood import log_likelihood2
 
 
 def positive(tensor: Tensor) -> Tensor:
     return F.softplus(tensor)  # ReLU + eps とかだとうまくいかない (おそらく勾配消失のせい)
+
+
+def log_normal(x: Tensor, mean: Union[Tensor, float], std: Union[Tensor, float]) -> Tensor:
+    # 正規化項 (1/√(2π)σ) は推定に影響しないので省略してある
+    return -(torch.sum(((x - mean) / std) ** 2)) / 2.0
 
 
 class GRMMAPModule(nn.Module):
@@ -18,23 +23,28 @@ class GRMMAPModule(nn.Module):
     """
 
     def __init__(self,
-                 a_prior: GaussianPrior, b_prior: GaussianPrior, t_prior: GaussianPrior,
-                 num_responses_total: int):
+                 n_items: int,
+                 n_persons: int,
+                 n_grades: int,
+                 n_responses: int):
         super().__init__()
 
-        # パラメータ、初期値はすべて Prior の mean
-        def p(arr: np.ndarray) -> nn.Parameter:
-            return nn.Parameter(torch.from_numpy(arr).float())
-        self.a_ = p(a_prior.mean)
-        self.b_base_ = p(b_prior.mean[:, 0:1])
-        self.b_diff_ = p(np.diff(b_prior.mean, axis=1))
-        self.t_ = p(t_prior.mean)
+        # パラメータ
+        def parameter(*size: int) -> nn.Parameter:
+            return nn.Parameter(torch.zeros(*size), requires_grad=True)
+        self.a_ = parameter(n_items)
+        self.b_base_ = parameter(n_items, 1)
+        self.b_diff_ = parameter(n_items, n_grades - 2)
+        self.t_ = parameter(n_persons)
 
         # その他
-        self.a_prior = a_prior.to_tensors()
-        self.b_prior = b_prior.to_tensors()
-        self.t_prior = t_prior.to_tensors()
-        self.num_responses_total = num_responses_total
+        self.a_prior_mean = 0.0
+        self.a_prior_std = 1.0
+        self.b_prior_mean = 0.0
+        self.b_prior_std = 1.0
+        self.t_prior_mean = 0.0
+        self.t_prior_std = 1.0
+        self.n_responses = n_responses
 
     @property
     def a(self) -> Tensor:
@@ -60,10 +70,13 @@ class GRMMAPModule(nn.Module):
         a, b, t = self.a, self.b, self.t
         item_index, person_index, response_index = indices[:, 0], indices[:, 1], indices[:, 2]
 
-        log_prior = self.a_prior.log_normal(a) + self.b_prior.log_normal(b) + self.t_prior.log_normal(t)
+        log_prior = \
+            log_normal(a, self.a_prior_mean, self.a_prior_std) + \
+            log_normal(b, self.b_prior_mean, self.b_prior_std) + \
+            log_normal(t, self.t_prior_mean, self.t_prior_std)
         log_likelihood = log_likelihood2(a, b, t, item_index, person_index, response_index)
 
         # SGDでデータの一部を渡すことを想定してpriorに補正をかけている
-        log_posterior = log_likelihood + log_prior * (indices.shape[0] / self.num_responses_total)
+        log_posterior = log_likelihood + log_prior * (indices.shape[0] / self.n_responses)
 
         return -log_posterior  # 「事後確率の対数のマイナスを最小化」⇔「事後確率を最大化」

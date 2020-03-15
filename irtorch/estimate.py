@@ -13,9 +13,6 @@ from irtorch.map_module import GRMMAPModule
 class GRMEstimator(pl.LightningModule):
     def __init__(self,
                  response_df: pd.DataFrame,
-                 a_prior_df: pd.DataFrame,
-                 b_prior_df: pd.DataFrame,
-                 t_prior_df: pd.DataFrame,
                  batch_size: int,
                  ):
         super(GRMEstimator, self).__init__()
@@ -23,10 +20,10 @@ class GRMEstimator(pl.LightningModule):
         self.converter = GRMDataConverter(response_df)
 
         self.model = GRMMAPModule(
-            a_prior=self.converter.make_a_prior(a_prior_df),
-            b_prior=self.converter.make_b_prior(b_prior_df),
-            t_prior=self.converter.make_t_prior(t_prior_df),
-            num_responses_total=len(response_df)
+            n_items=self.converter.n_items,
+            n_persons=self.converter.n_persons,
+            n_grades=self.converter.n_grades,
+            n_responses=self.converter.n_responses,
         )
 
         indices = np.c_[self.converter.make_item_array(),
@@ -89,13 +86,10 @@ def estimate(
         response_df: pd.DataFrame,
         out_dir: str,
         log_dir: str,
-        a_prior_df: pd.DataFrame,
-        b_prior_df: pd.DataFrame,
-        t_prior_df: pd.DataFrame,
         n_iter: int,
         batch_size: int,
 ):
-    estimator = GRMEstimator(response_df, a_prior_df, b_prior_df, t_prior_df, batch_size)
+    estimator = GRMEstimator(response_df, batch_size)
     output_estimates = OutputEstimates(out_dir, estimator)
 
     trainer = pl.Trainer(
