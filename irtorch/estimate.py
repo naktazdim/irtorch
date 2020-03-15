@@ -15,7 +15,9 @@ class GRMEstimator(pl.LightningModule):
                  response_df: pd.DataFrame,
                  a_prior_df: pd.DataFrame,
                  b_prior_df: pd.DataFrame,
-                 t_prior_df: pd.DataFrame):
+                 t_prior_df: pd.DataFrame,
+                 batch_size: int,
+                 ):
         super(GRMEstimator, self).__init__()
 
         self.converter = GRMDataConverter(response_df)
@@ -31,6 +33,8 @@ class GRMEstimator(pl.LightningModule):
                         self.converter.make_person_array(),
                         self.converter.make_response_array()]
         self.dataset = TensorDataset(torch.tensor(indices).long())
+
+        self.batch_size = batch_size
 
         self.loss_total = 0.0
 
@@ -49,7 +53,7 @@ class GRMEstimator(pl.LightningModule):
         self.loss_total = 0.0
 
     def train_dataloader(self):
-        return DataLoader(self.dataset, batch_size=1000, shuffle=True)
+        return DataLoader(self.dataset, batch_size=self.batch_size, shuffle=True)
 
     def validation_step(self):
         pass  # dummy implementation to enable validation
@@ -89,8 +93,9 @@ def estimate(
         b_prior_df: pd.DataFrame,
         t_prior_df: pd.DataFrame,
         n_iter: int,
+        batch_size: int,
 ):
-    estimator = GRMEstimator(response_df, a_prior_df, b_prior_df, t_prior_df)
+    estimator = GRMEstimator(response_df, a_prior_df, b_prior_df, t_prior_df, batch_size)
     output_estimates = OutputEstimates(out_dir, estimator)
 
     trainer = pl.Trainer(

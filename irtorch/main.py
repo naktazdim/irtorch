@@ -17,6 +17,7 @@ def main():
     p.add_argument("--b-prior", type=str)
     p.add_argument("--t-prior", type=str)
     p.add_argument("-n", "--n-iter", type=int, default=1000)
+    p.add_argument("-b", "--batch-size", type=int, default=1000)
     p.add_argument("-o", "--out-dir", type=str, default=".")
     p.add_argument("-l", "--log-dir", type=str, default=".")
     args = p.parse_args()
@@ -27,6 +28,7 @@ def main():
         b_prior_df=read_csv_or_none(args.b_prior),
         t_prior_df=read_csv_or_none(args.t_prior),
         n_iter=args.n_iter,
+        batch_size=args.batch_size,
         out_dir=args.out_dir,
         log_dir=args.log_dir,
     )
