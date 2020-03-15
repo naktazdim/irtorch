@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 
-from irtorch.grm.prior import GaussianPrior
+from irtorch.prior import GaussianPrior
 
 
 class GRMDataConverter(object):

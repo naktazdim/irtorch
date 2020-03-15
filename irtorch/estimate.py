@@ -7,8 +7,8 @@ import torch
 from torch.utils.data import TensorDataset, DataLoader
 import pytorch_lightning as pl
 
-from irtorch.grm.converter import GRMDataConverter
-from irtorch.grm.map_module import GRMMAPModule
+from irtorch.converter import GRMDataConverter
+from irtorch.map_module import GRMMAPModule
 
 
 class GRMEstimator(pl.LightningModule):
@@ -97,7 +97,7 @@ def main():
 
     trainer = pl.Trainer(default_save_path=args.out_dir, callbacks=[output_estimates])
     trainer.fit(estimator)
-    
+
 
 if __name__ == "__main__":
     main()

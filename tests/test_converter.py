@@ -5,7 +5,7 @@ import numpy as np
 import numpy.testing
 import pandas as pd
 
-from irtorch.grm.converter import GRMDataConverter
+from irtorch.converter import GRMDataConverter
 
 
 def resource_path(*paths: str) -> str:
