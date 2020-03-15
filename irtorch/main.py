@@ -17,7 +17,7 @@ def main():
     p.add_argument("--b-prior", type=str)
     p.add_argument("--t-prior", type=str)
     p.add_argument("-n", "--n-iter", type=int, default=1000)
-    p.add_argument("-o", "--out-dir", type=str)
+    p.add_argument("-o", "--out-dir", type=str, default=".")
     args = p.parse_args()
 
     estimate(
