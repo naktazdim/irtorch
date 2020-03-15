@@ -57,7 +57,7 @@ class GRMEstimator(pl.LightningModule):
 
     def validation_epoch_end(self, _):
         return {
-            "val_loss": self.loss_total,
+            "log_posterior": -self.loss_total,
             "log": {"log_posterior": -self.loss_total}
         }
 
