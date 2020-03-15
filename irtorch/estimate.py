@@ -95,7 +95,7 @@ def main():
     estimator = GRMEstimator(response_df)
     output_estimates = OutputEstimates(args.out_dir, estimator)
 
-    trainer = pl.Trainer(default_save_path=args.out_dir, callbacks=[output_estimates])
+    trainer = pl.Trainer(default_save_path=args.out_dir, callbacks=[output_estimates], checkpoint_callback=False)
     trainer.fit(estimator)
 
 
