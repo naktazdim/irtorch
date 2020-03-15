@@ -23,10 +23,8 @@ class GRMDataConverter(object):
         assert np.issubdtype(response_df.response.dtype, np.integer)
         assert response_df.response.min() >= 1
 
-        self.response_df = response_df.copy()
-        self.response_df["item"] = self.response_df["item"].astype("category")
-        self.response_df["person"] = self.response_df["person"].astype("category")
-
+        self.response_df = response_df.astype({"item": "category", "person": "category"})
+        
         self.item_category = self.response_df.item.dtype
         self.person_category = self.response_df.person.dtype
 
