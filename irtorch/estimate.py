@@ -84,6 +84,7 @@ class OutputEstimates(pl.Callback):
 def estimate(
         response_df: pd.DataFrame,
         out_dir: str,
+        log_dir: str,
         a_prior_df: pd.DataFrame,
         b_prior_df: pd.DataFrame,
         t_prior_df: pd.DataFrame,
@@ -93,7 +94,7 @@ def estimate(
     output_estimates = OutputEstimates(out_dir, estimator)
 
     trainer = pl.Trainer(
-        default_save_path=out_dir,
+        default_save_path=log_dir,
         callbacks=[output_estimates],
         checkpoint_callback=False,
         max_epochs=n_iter
