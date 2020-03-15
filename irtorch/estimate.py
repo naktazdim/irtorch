@@ -27,10 +27,7 @@ class GRMEstimator(pl.LightningModule):
             n_responses=self.converter.n_responses,
         )
 
-        indices = np.c_[self.converter.make_item_array(),
-                        self.converter.make_person_array(),
-                        self.converter.make_response_array()]
-        self.dataset = TensorDataset(torch.tensor(indices).long())
+        self.dataset = TensorDataset(torch.tensor(self.converter.make_response_array()).long())
 
         self.batch_size = batch_size
 

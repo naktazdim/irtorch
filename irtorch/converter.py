@@ -43,26 +43,16 @@ class GRMDataConverter(object):
         self.n_grades = n_grades or response_df.response.max()
         self.n_levels = len(self.level_category.categories)
 
-    def make_item_array(self) -> np.ndarray:
-        """
-
-        :return: shape=(n_responses,)
-        """
-        return self.response_df.item.cat.codes.values
-
-    def make_person_array(self) -> np.ndarray:
-        """
-
-        :return: shape=(n_responses,)
-        """
-        return self.response_df.person.cat.codes.values
-
     def make_response_array(self) -> np.ndarray:
         """
 
-        :return: shape=(n_responses,)
+        :return: shape=(n_responses, 3)
         """
-        return self.response_df.response.values
+        return np.c_[
+            self.response_df.item.cat.codes.values,
+            self.response_df.person.cat.codes.values,
+            self.response_df.response.values
+        ]
 
     def make_level_array(self) -> np.ndarray:
         """

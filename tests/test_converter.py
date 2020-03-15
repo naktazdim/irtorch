@@ -25,20 +25,6 @@ def converter() -> GRMDataConverter:
     return GRMDataConverter(df("input", "response.csv"), df("input", "level.csv"))
 
 
-def test_make_item_array(converter):
-    numpy.testing.assert_array_equal(
-        converter.make_item_array(),
-        array("output", "item_array.csv", dtype=int)
-    )
-
-
-def test_make_person_array(converter):
-    numpy.testing.assert_array_equal(
-        converter.make_person_array(),
-        array("output", "person_array.csv", dtype=int)
-    )
-
-
 def test_make_response_array(converter):
     numpy.testing.assert_array_equal(
         converter.make_response_array(),
