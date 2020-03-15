@@ -1,4 +1,3 @@
-import argparse
 from pathlib import Path
 
 import numpy as np
@@ -82,28 +81,21 @@ class OutputEstimates(pl.Callback):
             self.estimator.output_results(self.dir_path)
 
 
-def main():
-    p = argparse.ArgumentParser()
-    p.add_argument("response", type=str)
-    p.add_argument("--a-prior", type=str)
-    p.add_argument("--b-prior", type=str)
-    p.add_argument("--t-prior", type=str)
-    p.add_argument("-n", "--n-iter", type=int, default=1000)
-    p.add_argument("-o", "--out-dir", type=str)
-    args = p.parse_args()
-
-    response_df = pd.read_csv(args.response)
+def estimate(
+        response_df: pd.DataFrame,
+        out_dir: str,
+        a_prior_df: pd.DataFrame = None,
+        b_prior_df: pd.DataFrame = None,
+        t_prior_df: pd.DataFrame = None,
+        n_iter: int = 1000
+):
     estimator = GRMEstimator(response_df)
-    output_estimates = OutputEstimates(args.out_dir, estimator)
+    output_estimates = OutputEstimates(out_dir, estimator)
 
     trainer = pl.Trainer(
-        default_save_path=args.out_dir,
+        default_save_path=out_dir,
         callbacks=[output_estimates],
         checkpoint_callback=False,
-        max_epochs=args.n_iter
+        max_epochs=n_iter
     )
     trainer.fit(estimator)
-
-
-if __name__ == "__main__":
-    main()
