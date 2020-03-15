@@ -84,10 +84,10 @@ class OutputEstimates(pl.Callback):
 def estimate(
         response_df: pd.DataFrame,
         out_dir: str,
-        a_prior_df: pd.DataFrame = None,
-        b_prior_df: pd.DataFrame = None,
-        t_prior_df: pd.DataFrame = None,
-        n_iter: int = 1000
+        a_prior_df: pd.DataFrame,
+        b_prior_df: pd.DataFrame,
+        t_prior_df: pd.DataFrame,
+        n_iter: int,
 ):
     estimator = GRMEstimator(response_df, a_prior_df, b_prior_df, t_prior_df)
     output_estimates = OutputEstimates(out_dir, estimator)
