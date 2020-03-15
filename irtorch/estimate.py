@@ -13,9 +13,9 @@ from irtorch.map_module import GRMMAPModule
 class GRMEstimator(pl.LightningModule):
     def __init__(self,
                  response_df: pd.DataFrame,
-                 a_prior_df: pd.DataFrame = None,
-                 b_prior_df: pd.DataFrame = None,
-                 t_prior_df: pd.DataFrame = None):
+                 a_prior_df: pd.DataFrame,
+                 b_prior_df: pd.DataFrame,
+                 t_prior_df: pd.DataFrame):
         super(GRMEstimator, self).__init__()
 
         self.converter = GRMDataConverter(response_df)
