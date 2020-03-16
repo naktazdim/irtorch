@@ -5,6 +5,7 @@ import pandas as pd
 import torch
 from torch.utils.data import TensorDataset, DataLoader
 import pytorch_lightning as pl
+from pytorch_lightning.callbacks import EarlyStopping
 
 from irtorch.converter import GRMDataConverter
 from irtorch.map_module import GRMMAPModule
@@ -92,13 +93,20 @@ def estimate(
         log_dir: str,
         n_iter: int,
         batch_size: int,
+        patience: int = None,
         level_df: pd.DataFrame = None,
 ):
     estimator = GRMEstimator(response_df, batch_size, level_df)
     output_estimates = OutputEstimates(out_dir, estimator)
+    early_stop_callback = None if patience is None else EarlyStopping(
+        monitor="log_posterior",
+        mode="max",
+        patience=patience
+    )
 
     trainer = pl.Trainer(
         default_save_path=log_dir,
+        early_stop_callback=early_stop_callback,
         callbacks=[output_estimates],
         checkpoint_callback=False,
         max_epochs=n_iter
