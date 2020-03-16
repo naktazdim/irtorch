@@ -40,7 +40,7 @@ class GRMDataConverter(object):
             assert level_df.item.unique().all()
 
             self.level_df = pd.merge(
-                self._make_a_df_base(),
+                self.item_category.categories.to_frame(name="item"),
                 level_df
                     .drop_duplicates(subset="item")
                     .astype({"item": self.item_category}),
@@ -68,15 +68,6 @@ class GRMDataConverter(object):
         """
         return self.level_df.level.cat.codes.values if self.is_hierarchical else None
 
-    def _make_a_df_base(self) -> pd.DataFrame:
-        return pd.DataFrame(
-            pd.Categorical.from_codes(
-                codes=np.arange(self.n_items),
-                dtype=self.item_category
-            ),
-            columns=["item"]
-        )
-
     def _make_b_df_base(self) -> pd.DataFrame:
         # item|grade
         # foo |  2
@@ -94,15 +85,7 @@ class GRMDataConverter(object):
         )
         ret["item"] = pd.Categorical.from_codes(ret["item"], dtype=self.item_category)
         return ret.reset_index(drop=True)
-
-    def _make_t_df_base(self) -> pd.DataFrame:
-        return pd.DataFrame(
-            pd.Categorical.from_codes(
-                codes=np.arange(self.n_persons),
-                dtype=self.person_category
-            ), columns=["person"]
-        )
-
+    
     def _make_level_df_base(self) -> pd.DataFrame:
         # item|grade
         # foo |  2
@@ -128,7 +111,7 @@ class GRMDataConverter(object):
         :return: columns=(item, a)
         """
         assert a_array.shape == (self.n_items,)
-        return self._make_a_df_base().assign(a=a_array)
+        return pd.DataFrame().assign(item=self.item_category.categories, a=a_array)
 
     def make_b_df(self, b_array: np.ndarray) -> pd.DataFrame:
         """
@@ -146,7 +129,7 @@ class GRMDataConverter(object):
         :return: columns=(person, t)
         """
         assert t_array.shape == (self.n_persons,)
-        return self._make_t_df_base().assign(t=t_array.flatten())
+        return pd.DataFrame().assign(person=self.person_category.categories, t=t_array)
 
     def make_level_df(self, level_mean_array: np.ndarray, level_std_array: np.ndarray) -> pd.DataFrame:
         """
