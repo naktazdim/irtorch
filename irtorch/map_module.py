@@ -58,8 +58,8 @@ class GRMMAPModule(nn.Module):
         self.a_ = parameter(n_items)
         self.b_base_ = parameter(n_items, 1)
         self.b_diff_ = parameter(n_items, n_grades - 2)
-        self.t_ = parameter(n_persons)
-        self.b_prior_mean_ = parameter(n_labels, n_grades - 1)
+        self.t = parameter(n_persons)
+        self.b_prior_mean = parameter(n_labels, n_grades - 1)
         self.b_prior_std_ = parameter(n_labels, n_grades - 1)
 
         # その他
@@ -80,14 +80,6 @@ class GRMMAPModule(nn.Module):
             torch.cat([self.b_base_, positive(self.b_diff_)], dim=1),
             dim=1
         )
-
-    @property
-    def t(self):
-        return self.t_
-
-    @property
-    def b_prior_mean(self):
-        return self.b_prior_mean_
 
     @property
     def b_prior_std(self):
