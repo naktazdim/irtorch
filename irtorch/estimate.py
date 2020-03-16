@@ -13,8 +13,8 @@ from irtorch.map_module import GRMMAPModule
 class GRMEstimator(pl.LightningModule):
     def __init__(self,
                  response_df: pd.DataFrame,
-                 level_df: pd.DataFrame,
                  batch_size: int,
+                 level_df: pd.DataFrame = None,
                  ):
         super(GRMEstimator, self).__init__()
 
@@ -25,7 +25,6 @@ class GRMEstimator(pl.LightningModule):
             n_persons=self.converter.n_persons,
             n_grades=self.converter.n_grades,
             n_responses=self.converter.n_responses,
-            n_labels=self.converter.n_levels,
             level_index=self.converter.make_level_array()
         )
 
@@ -67,10 +66,11 @@ class GRMEstimator(pl.LightningModule):
         self.converter.make_a_df(self.model.a.detach().numpy()).to_csv(dir_path / "a.csv", index=False)
         self.converter.make_b_df(self.model.b.detach().numpy()).to_csv(dir_path / "b.csv", index=False)
         self.converter.make_t_df(self.model.t.detach().numpy()).to_csv(dir_path / "t.csv", index=False)
-        self.converter.make_level_df(
-            self.model.b_prior_mean.detach().numpy(),
-            self.model.b_prior_std.detach().numpy()
-        ).to_csv(dir_path / "b_prior.csv", index=False)
+        if self.converter.is_hierarchical:
+            self.converter.make_level_df(
+                self.model.b_prior_mean.detach().numpy(),
+                self.model.b_prior_std.detach().numpy()
+            ).to_csv(dir_path / "b_prior.csv", index=False)
 
 
 class OutputEstimates(pl.Callback):
@@ -88,13 +88,13 @@ class OutputEstimates(pl.Callback):
 
 def estimate(
         response_df: pd.DataFrame,
-        level_df: pd.DataFrame,
         out_dir: str,
         log_dir: str,
         n_iter: int,
         batch_size: int,
+        level_df: pd.DataFrame = None,
 ):
-    estimator = GRMEstimator(response_df, level_df, batch_size)
+    estimator = GRMEstimator(response_df, batch_size, level_df)
     output_estimates = OutputEstimates(out_dir, estimator)
 
     trainer = pl.Trainer(

@@ -22,8 +22,7 @@ class GRMMAPModule(nn.Module):
                  n_persons: int,
                  n_grades: int,
                  n_responses: int,
-                 n_labels: int,
-                 level_index: np.ndarray):
+                 level_index: np.ndarray = None):
         super().__init__()
 
         # パラメータ
@@ -33,16 +32,23 @@ class GRMMAPModule(nn.Module):
         self.b_base_ = parameter(n_items, 1)
         self.b_diff_ = parameter(n_items, n_grades - 2)
         self.t = parameter(n_persons)
-        self.b_prior_mean = parameter(n_labels, n_grades - 1)
-        self.b_prior_std_ = parameter(n_labels, n_grades - 1)
 
-        # その他
+        # その他 (b_prior の定義は下に)
         self.a_prior = Normal()
         self.t_prior = Normal()
-        self.b_prior_mean_prior = Normal()
-        self.b_prior_std_prior = InverseGamma()
         self.n_responses = n_responses
-        self.level_index = torch.from_numpy(level_index).long()
+
+        # 階層ベイズ用
+        if level_index is None:
+            self.is_hierarchical = False
+        else:
+            self.is_hierarchical = True
+            n_levels = level_index.max() + 1
+            self.b_prior_mean = parameter(n_levels, n_grades - 1)
+            self.b_prior_std_ = parameter(n_levels, n_grades - 1)
+            self.b_prior_mean_prior = Normal()
+            self.b_prior_std_prior = InverseGamma()
+            self.level_index = torch.from_numpy(level_index).long()
 
     @property
     def a(self) -> Tensor:
@@ -61,8 +67,11 @@ class GRMMAPModule(nn.Module):
 
     @property
     def b_prior(self):
-        return Normal(self.b_prior_mean[self.level_index, :],
-                      self.b_prior_std[self.level_index, :])
+        if self.is_hierarchical:
+            return Normal(self.b_prior_mean[self.level_index, :],
+                          self.b_prior_std[self.level_index, :])
+        else:
+            return Normal(0.0, 1.0)
 
     def forward(self, indices: Tensor) -> Tensor:
         """
@@ -70,11 +79,14 @@ class GRMMAPModule(nn.Module):
         :param indices: item, person, response [shape=(n_responses, 3)]
         :return:
         """
-        log_hyperprior = self.b_prior_mean_prior.log_pdf(self.b_prior_mean) + self.b_prior_std_prior.log_pdf(self.b_prior_std)
         log_prior = self.a_prior.log_pdf(self.a) + self.b_prior.log_pdf(self.b) + self.t_prior.log_pdf(self.t)
         log_likelihood = log_likelihood2(self.a, self.b, self.t, indices[:, 0], indices[:, 1], indices[:, 2])
 
+        if self.is_hierarchical:
+            log_prior += self.b_prior_mean_prior.log_pdf(self.b_prior_mean) + \
+                         self.b_prior_std_prior.log_pdf(self.b_prior_std)
+
         # SGDでデータの一部を渡すことを想定してpriorに補正をかけている
-        log_posterior = log_likelihood + (log_prior + log_hyperprior) * (indices.shape[0] / self.n_responses)
+        log_posterior = log_likelihood + log_prior * (indices.shape[0] / self.n_responses)
 
         return -log_posterior  # 「事後確率の対数のマイナスを最小化」⇔「事後確率を最大化」

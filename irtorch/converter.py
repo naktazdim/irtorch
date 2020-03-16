@@ -5,7 +5,7 @@ import pandas as pd
 class GRMDataConverter(object):
     def __init__(self,
                  response_df: pd.DataFrame,
-                 level_df: pd.DataFrame,
+                 level_df: pd.DataFrame = None,
                  n_grades: int = None):
         """
 
@@ -30,20 +30,25 @@ class GRMDataConverter(object):
         self.n_responses = len(response_df)
         self.n_grades = n_grades or response_df.response.max()
 
-        assert "item" in level_df.columns
-        assert "level" in level_df.columns
-        assert level_df.item.unique().all()
+        if level_df is None:
+            self.is_hierarchical = False
+        else:
+            self.is_hierarchical = True
 
-        self.level_df = pd.merge(
-            self._make_a_df_base(),
-            level_df
-                .drop_duplicates(subset="item")
-                .astype({"item": self.item_category}),
-            how="left"
-        )
-        self.level_df["level"] = self.level_df.level.fillna("_unknown").astype({"level": "category"})
-        self.level_category = self.level_df.level.dtype
-        self.n_levels = len(self.level_category.categories)
+            assert "item" in level_df.columns
+            assert "level" in level_df.columns
+            assert level_df.item.unique().all()
+
+            self.level_df = pd.merge(
+                self._make_a_df_base(),
+                level_df
+                    .drop_duplicates(subset="item")
+                    .astype({"item": self.item_category}),
+                how="left"
+            )
+            self.level_df["level"] = self.level_df.level.fillna("_unknown").astype({"level": "category"})
+            self.level_category = self.level_df.level.dtype
+            self.n_levels = len(self.level_category.categories)
 
     def make_response_array(self) -> np.ndarray:
         """
@@ -61,7 +66,7 @@ class GRMDataConverter(object):
 
         :return: shape=(n_items,)
         """
-        return self.level_df.level.cat.codes.values
+        return self.level_df.level.cat.codes.values if self.is_hierarchical else None
 
     def _make_a_df_base(self) -> pd.DataFrame:
         return pd.DataFrame(
