@@ -1,3 +1,5 @@
+from itertools import product
+
 import numpy as np
 import pandas as pd
 
@@ -21,7 +23,7 @@ class GRMDataConverter(object):
         assert response_df.response.min() >= 1
 
         self.response_df = response_df.astype({"item": "category", "person": "category"})
-        
+
         self.item_category = self.response_df.item.dtype
         self.person_category = self.response_df.person.dtype
 
@@ -68,42 +70,6 @@ class GRMDataConverter(object):
         """
         return self.level_df.level.cat.codes.values if self.is_hierarchical else None
 
-    def _make_b_df_base(self) -> pd.DataFrame:
-        # item|grade
-        # foo |  2
-        # foo |  3
-        # foo |  4
-        # bar |  2
-        # bar |  3
-        # bar |  4
-        # ...
-        ret = pd.concat(
-            [pd.DataFrame(
-                {"item": item,
-                 "grade": np.arange(2, self.n_grades + 1)},
-            ) for item in range(self.n_items)]
-        )
-        ret["item"] = pd.Categorical.from_codes(ret["item"], dtype=self.item_category)
-        return ret.reset_index(drop=True)
-    
-    def _make_level_df_base(self) -> pd.DataFrame:
-        # item|grade
-        # foo |  2
-        # foo |  3
-        # foo |  4
-        # bar |  2
-        # bar |  3
-        # bar |  4
-        # ...
-        ret = pd.concat(
-            [pd.DataFrame(
-                {"level": level,
-                 "grade": np.arange(2, self.n_grades + 1)},
-            ) for level in range(self.n_levels)]
-        )
-        ret["level"] = pd.Categorical.from_codes(ret["level"], dtype=self.level_category)
-        return ret.reset_index(drop=True)
-
     def make_a_df(self, a_array: np.ndarray) -> pd.DataFrame:
         """
 
@@ -115,12 +81,24 @@ class GRMDataConverter(object):
 
     def make_b_df(self, b_array: np.ndarray) -> pd.DataFrame:
         """
+        |item|grade| b |
+        |foo |  2  |   |
+        |foo |  3  |   |
+        |foo |  4  |   |
+        |bar |  2  |   |
+        |bar |  3  |   |
+        |bar |  4  |   |
+        ...
 
         :param b_array: shape=(n_items, n_grades - 1)
         :return: columns=(item, grade, b)
         """
         assert b_array.shape == (self.n_items, self.n_grades - 1)
-        return self._make_b_df_base().assign(b=b_array.flatten())
+        return pd.DataFrame(
+            product(self.item_category.categories,
+                    np.arange(2, self.n_grades + 1)),
+            columns=["item", "grade"])\
+            .assign(b=b_array.flatten())
 
     def make_t_df(self, t_array: np.ndarray) -> pd.DataFrame:
         """
@@ -133,6 +111,14 @@ class GRMDataConverter(object):
 
     def make_level_df(self, level_mean_array: np.ndarray, level_std_array: np.ndarray) -> pd.DataFrame:
         """
+        |level|grade| b |
+        | foo |  2  |   |
+        | foo |  3  |   |
+        | foo |  4  |   |
+        | bar |  2  |   |
+        | bar |  3  |   |
+        | bar |  4  |   |
+        ...
 
         :param level_mean_array: shape=(n_levels, n_grades - 1)
         :param level_std_array: shape=(n_levels, n_grades - 1)
@@ -140,4 +126,9 @@ class GRMDataConverter(object):
         """
         assert level_mean_array.shape == (self.n_levels, self.n_grades - 1)
         assert level_std_array.shape == (self.n_levels, self.n_grades - 1)
-        return self._make_level_df_base().assign(mean=level_mean_array.flatten(), std=level_std_array.flatten())
+        return pd.DataFrame(
+            product(self.level_category.categories,
+                    np.arange(2, self.n_grades + 1)),
+            columns=["item", "grade"]) \
+            .assign(mean=level_mean_array.flatten(),
+                    std=level_std_array.flatten())
