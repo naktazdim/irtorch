@@ -32,13 +32,6 @@ def test_make_response_array(converter):
     )
 
 
-def test_make_level_array(converter):
-    numpy.testing.assert_array_equal(
-        converter.make_level_array(),
-        array("output", "level_array.csv", dtype=int)
-    )
-
-
 def test_make_a_df(converter):
     pd.testing.assert_frame_equal(
         converter.make_a_df(array("input", "a_array.csv")),
