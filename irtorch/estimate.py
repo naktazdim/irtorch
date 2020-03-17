@@ -8,7 +8,7 @@ import pytorch_lightning as pl
 from pytorch_lightning.callbacks import EarlyStopping
 
 from irtorch.converter import GRMDataConverter
-from irtorch.core.map_module import GRMMAPModule
+from irtorch.core.map_module import GRMMAPModule, GRMMAPModuleHierarchical
 
 
 class GRMEstimator(pl.LightningModule):
@@ -21,10 +21,15 @@ class GRMEstimator(pl.LightningModule):
 
         self.converter = GRMDataConverter(response_df, level_df)
 
-        self.model = GRMMAPModule(
-            response_array=self.converter.make_response_array(),
-            level_index=self.converter.make_level_array()
-        )
+        if level_df is None:
+            self.is_hierarchical = False
+            self.model = GRMMAPModule(self.converter.make_response_array())
+        else:
+            self.is_hierarchical = True
+            self.model = GRMMAPModuleHierarchical(
+                response_array=self.converter.make_response_array(),
+                level_index=self.converter.make_level_array()
+            )
 
         self.batch_size = batch_size
 
