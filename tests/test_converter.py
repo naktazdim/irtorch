@@ -1,6 +1,6 @@
 import pytest
 
-import numpy.testing
+import numpy as np
 import pandas as pd
 
 from irtorch.converter import GRMDataConverter
@@ -13,7 +13,7 @@ def converter() -> GRMDataConverter:
 
 
 def test_make_response_array(converter):
-    numpy.testing.assert_array_equal(
+    np.testing.assert_array_equal(
         converter.make_response_array(),
         array("output", "response_array.csv", dtype=int)
     )
