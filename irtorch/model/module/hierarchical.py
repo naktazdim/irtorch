@@ -2,9 +2,9 @@ import torch
 from torch import Tensor
 import numpy as np
 
-from irtorch.core.prior import Normal, InverseGamma
-from irtorch.core.module.base import GradedResponseModel
-from irtorch.core.util import positive, parameter
+from irtorch.model.prior import Normal, InverseGamma
+from irtorch.model.module.base import GradedResponseModel
+from irtorch.model.util import positive, parameter
 
 
 class HierarchicalGradedResponseModel(GradedResponseModel):

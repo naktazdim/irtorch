@@ -6,7 +6,7 @@ import pytorch_lightning as pl
 from pytorch_lightning.callbacks import EarlyStopping
 
 from irtorch.converter import GRMInputs, GRMOutputs, GRMMeta
-from irtorch.core import GradedResponseModel, HierarchicalGradedResponseModel
+from irtorch.model import GradedResponseModel, HierarchicalGradedResponseModel
 
 
 def make_model(inputs: GRMInputs) -> GradedResponseModel:

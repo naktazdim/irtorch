@@ -4,9 +4,9 @@ import torch.nn as nn
 from torch.utils.data import TensorDataset
 import numpy as np
 
-from irtorch.core.likelihood import log_likelihood2
-from irtorch.core.prior import Normal
-from irtorch.core.util import positive, parameter
+from irtorch.model.likelihood import log_likelihood2
+from irtorch.model.prior import Normal
+from irtorch.model.util import positive, parameter
 
 
 class GradedResponseModel(nn.Module):
