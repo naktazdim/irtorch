@@ -5,8 +5,8 @@ from torch.utils.data import TensorDataset
 import numpy as np
 
 from irtorch.core.likelihood import log_likelihood2
-from irtorch.core.map_module.prior import Normal
-from irtorch.core.map_module.util import positive, parameter
+from irtorch.core.prior import Normal
+from irtorch.core.util import positive, parameter
 
 
 class GRMMAPModule(nn.Module):

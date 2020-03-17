@@ -2,9 +2,9 @@ import torch
 from torch import Tensor
 import numpy as np
 
-from irtorch.core.map_module.prior import Normal, InverseGamma
+from irtorch.core.prior import Normal, InverseGamma
 from irtorch.core.map_module.base import GRMMAPModule
-from irtorch.core.map_module.util import positive, parameter
+from irtorch.core.util import positive, parameter
 
 
 class GRMMAPModuleHierarchical(GRMMAPModule):
