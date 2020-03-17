@@ -7,13 +7,11 @@ import pandas as pd
 class GRMDataConverter(object):
     def __init__(self,
                  response_df: pd.DataFrame,
-                 level_df: pd.DataFrame = None,
-                 n_grades: int = None):
+                 level_df: pd.DataFrame = None):
         """
 
         :param response_df: columns=["item", "person", "response"]
         :param level_df: columns=["item", "level"]
-        :param n_grades: 項目数。指定しない場合は response の最大値
         """
         assert "item" in response_df.columns
         assert "person" in response_df.columns
@@ -30,7 +28,7 @@ class GRMDataConverter(object):
         self.n_items = len(self.item_category.categories)
         self.n_persons = len(self.person_category.categories)
         self.n_responses = len(response_df)
-        self.n_grades = n_grades or response_df.response.max()
+        self.n_grades = response_df.response.max()
 
         if level_df is None:
             self.is_hierarchical = False

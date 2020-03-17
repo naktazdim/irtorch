@@ -3,7 +3,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 import torch
-from torch.utils.data import TensorDataset, DataLoader
+from torch.utils.data import DataLoader
 import pytorch_lightning as pl
 from pytorch_lightning.callbacks import EarlyStopping
 
@@ -22,14 +22,9 @@ class GRMEstimator(pl.LightningModule):
         self.converter = GRMDataConverter(response_df, level_df)
 
         self.model = GRMMAPModule(
-            n_items=self.converter.n_items,
-            n_persons=self.converter.n_persons,
-            n_grades=self.converter.n_grades,
-            n_responses=self.converter.n_responses,
+            response_array=self.converter.make_response_array(),
             level_index=self.converter.make_level_array()
         )
-
-        self.dataset = TensorDataset(torch.tensor(self.converter.make_response_array()).long())
 
         self.batch_size = batch_size
 
@@ -50,7 +45,7 @@ class GRMEstimator(pl.LightningModule):
         self.loss_total = 0.0
 
     def train_dataloader(self):
-        return DataLoader(self.dataset, batch_size=self.batch_size, shuffle=True)
+        return DataLoader(self.model.dataset, batch_size=self.batch_size, shuffle=True)
 
     def validation_step(self):
         pass  # dummy implementation to enable validation

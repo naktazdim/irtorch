@@ -2,6 +2,7 @@ import torch
 from torch import Tensor
 import torch.nn as nn
 import torch.nn.functional as F
+from torch.utils.data import TensorDataset
 import numpy as np
 
 from .likelihood import log_likelihood2
@@ -18,12 +19,15 @@ class GRMMAPModule(nn.Module):
     """
 
     def __init__(self,
-                 n_items: int,
-                 n_persons: int,
-                 n_grades: int,
-                 n_responses: int,
+                 response_array: np.ndarray,
                  level_index: np.ndarray = None):
         super().__init__()
+
+        n_items = response_array[:, 0].max() + 1
+        n_persons = response_array[:, 1].max() + 1
+        n_grades = response_array[:, 2].max()
+        self.n_responses = len(response_array)
+        self.dataset = TensorDataset(torch.tensor(response_array).long())
 
         # パラメータ
         def parameter(*size: int) -> nn.Parameter:
@@ -36,7 +40,6 @@ class GRMMAPModule(nn.Module):
         # その他 (b_prior の定義は下に)
         self.a_prior = Normal()
         self.t_prior = Normal()
-        self.n_responses = n_responses
 
         # 階層ベイズ用
         if level_index is None:
