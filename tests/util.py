@@ -5,7 +5,7 @@ import numpy as np
 
 
 def resource_path(*paths: str) -> str:
-    return os.path.join(os.path.dirname(__file__), "resources", "converter", *paths)
+    return os.path.join(os.path.dirname(__file__), "resources", *paths)
 
 
 def df(*paths: str, **kwargs) -> pd.DataFrame:
