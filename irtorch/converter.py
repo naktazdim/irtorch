@@ -26,10 +26,16 @@ class GRMMeta:
         return None if self.level_category is None else len(self.level_category.categories)
 
 
-class GRMDataConverter(object):
-    def __init__(self,
-                 response_df: pd.DataFrame,
-                 level_df: pd.DataFrame = None):
+@dataclass()
+class GRMInputs:
+    meta: GRMMeta
+    response_array: np.ndarray
+    level_array: Optional[np.ndarray] = None
+
+    @classmethod
+    def from_df(cls,
+                response_df: pd.DataFrame,
+                level_df: pd.DataFrame = None):
         """
 
         :param response_df: columns=["item", "person", "response"]
@@ -42,49 +48,66 @@ class GRMDataConverter(object):
         assert np.issubdtype(response_df.response.dtype, np.integer)
         assert response_df.response.min() >= 1
 
-        self.response_df = response_df.astype({"item": "category", "person": "category"})
-        self.meta = GRMMeta(
-            self.response_df.item.dtype,
-            self.response_df.person.dtype,
+        response_df = response_df.astype({"item": "category", "person": "category"})
+        meta = GRMMeta(
+            response_df.item.dtype,
+            response_df.person.dtype,
             response_df.response.max()
         )
+        response_array = np.c_[
+            response_df.item.cat.codes.values,
+            response_df.person.cat.codes.values,
+            response_df.response.values
+        ]
 
         if level_df is None:
-            self.is_hierarchical = False
+            return GRMInputs(meta, response_array)
         else:
-            self.is_hierarchical = True
-
             assert "item" in level_df.columns
             assert "level" in level_df.columns
             assert level_df.item.unique().all()
 
-            self.level_df = pd.merge(
-                self.meta.item_category.categories.to_frame(name="item"),
+            level_df = pd.merge(
+                meta.item_category.categories.to_frame(name="item"),
                 level_df
                     .drop_duplicates(subset="item")
-                    .astype({"item": self.meta.item_category}),
+                    .astype({"item": meta.item_category}),
                 how="left"
             )
-            self.level_df["level"] = self.level_df.level.fillna("_unknown").astype({"level": "category"})
-            self.meta.level_category = self.level_df.level.dtype
+            level_df["level"] = level_df.level.fillna("_unknown").astype({"level": "category"})
+
+            meta.level_category = level_df.level.dtype
+            level_array = level_df.level.cat.codes.values
+
+            return GRMInputs(meta, response_array, level_array)
+
+
+class GRMDataConverter(object):
+    def __init__(self,
+                 response_df: pd.DataFrame,
+                 level_df: pd.DataFrame = None):
+        """
+
+        :param response_df: columns=["item", "person", "response"]
+        :param level_df: columns=["item", "level"]
+        """
+        self.is_hierarchical = (level_df is not None)
+        self._inputs = GRMInputs.from_df(response_df, level_df)
+        self.meta = self._inputs.meta
 
     def make_response_array(self) -> np.ndarray:
         """
 
         :return: shape=(n_responses, 3)
         """
-        return np.c_[
-            self.response_df.item.cat.codes.values,
-            self.response_df.person.cat.codes.values,
-            self.response_df.response.values
-        ]
+        return self._inputs.response_array
 
     def make_level_array(self) -> np.ndarray:
         """
 
         :return: shape=(n_items,)
         """
-        return self.level_df.level.cat.codes.values if self.is_hierarchical else None
+        return self._inputs.level_array
 
     def make_a_df(self, a_array: np.ndarray) -> pd.DataFrame:
         """
