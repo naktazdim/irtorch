@@ -3,7 +3,7 @@ import pytest
 import numpy as np
 import pandas as pd
 
-from irtorch.converter import GRMInputs, GRMOutputs
+from irtorch.estimate.converter import GRMInputs, GRMOutputs
 from tests.util import df, array
 
 

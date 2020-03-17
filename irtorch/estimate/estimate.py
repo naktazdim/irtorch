@@ -5,8 +5,8 @@ from torch.utils.data import DataLoader
 import pytorch_lightning as pl
 from pytorch_lightning.callbacks import EarlyStopping
 
-from irtorch.converter import GRMInputs, GRMOutputs, GRMMeta
-from irtorch.model import GradedResponseModel, HierarchicalGradedResponseModel
+from irtorch.estimate.converter import GRMInputs, GRMOutputs, GRMMeta
+from irtorch.estimate.model import GradedResponseModel, HierarchicalGradedResponseModel
 
 
 def make_model(inputs: GRMInputs) -> GradedResponseModel:
