@@ -5,8 +5,27 @@ from torch.utils.data import DataLoader
 import pytorch_lightning as pl
 from pytorch_lightning.callbacks import EarlyStopping
 
-from irtorch.converter import GRMInputs, GRMOutputs
+from irtorch.converter import GRMInputs, GRMOutputs, GRMMeta
 from irtorch.core import GRMMAPModule, GRMMAPModuleHierarchical
+
+
+def make_model(inputs: GRMInputs) -> GRMMAPModule:
+    if inputs.level_array is None:
+        return GRMMAPModule(inputs.response_array)
+    else:
+        return GRMMAPModuleHierarchical(inputs.response_array, inputs.level_array)
+
+
+def extract_output(meta: GRMMeta, model: GRMMAPModule) -> GRMOutputs:
+    is_hierarchical = isinstance(model, GRMMAPModuleHierarchical)
+    return GRMOutputs(
+        meta,
+        model.a.detach().numpy(),
+        model.b.detach().numpy(),
+        model.t.detach().numpy(),
+        model.b_prior_mean.detach().numpy() if is_hierarchical else None,
+        model.b_prior_std.detach().numpy() if is_hierarchical else None,
+    )
 
 
 class GRMEstimator(pl.LightningModule):
@@ -19,14 +38,7 @@ class GRMEstimator(pl.LightningModule):
 
         inputs = GRMInputs.from_df(response_df, level_df)
         self.meta = inputs.meta
-
-        if level_df is None:
-            self.is_hierarchical = False
-            self.model = GRMMAPModule(inputs.response_array)
-        else:
-            self.is_hierarchical = True
-            self.model = GRMMAPModuleHierarchical(inputs.response_array, inputs.level_array)
-
+        self.model = make_model(inputs)
         self.batch_size = batch_size
 
         self.loss_total = 0.0
@@ -58,14 +70,7 @@ class GRMEstimator(pl.LightningModule):
         }
 
     def output_results(self, dir_path: str):
-        GRMOutputs(
-            self.meta,
-            self.model.a.detach().numpy(),
-            self.model.b.detach().numpy(),
-            self.model.t.detach().numpy(),
-            self.model.b_prior_mean.detach().numpy() if self.is_hierarchical else None,
-            self.model.b_prior_std.detach().numpy() if self.is_hierarchical else None,
-        ).to_csvs(dir_path)
+        extract_output(self.meta, self.model).to_csvs(dir_path)
 
 
 class OutputEstimates(pl.Callback):
