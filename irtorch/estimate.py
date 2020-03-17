@@ -6,18 +6,18 @@ import pytorch_lightning as pl
 from pytorch_lightning.callbacks import EarlyStopping
 
 from irtorch.converter import GRMInputs, GRMOutputs, GRMMeta
-from irtorch.core import GRMMAPModule, GRMMAPModuleHierarchical
+from irtorch.core import GradedResponseModel, HierarchicalGradedResponseModel
 
 
-def make_model(inputs: GRMInputs) -> GRMMAPModule:
+def make_model(inputs: GRMInputs) -> GradedResponseModel:
     if inputs.level_array is None:
-        return GRMMAPModule(inputs.response_array)
+        return GradedResponseModel(inputs.response_array)
     else:
-        return GRMMAPModuleHierarchical(inputs.response_array, inputs.level_array)
+        return HierarchicalGradedResponseModel(inputs.response_array, inputs.level_array)
 
 
-def extract_output(meta: GRMMeta, model: GRMMAPModule) -> GRMOutputs:
-    is_hierarchical = isinstance(model, GRMMAPModuleHierarchical)
+def extract_output(meta: GRMMeta, model: GradedResponseModel) -> GRMOutputs:
+    is_hierarchical = isinstance(model, HierarchicalGradedResponseModel)
     return GRMOutputs(
         meta,
         model.a.detach().numpy(),

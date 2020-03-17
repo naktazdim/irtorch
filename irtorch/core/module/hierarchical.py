@@ -3,11 +3,11 @@ from torch import Tensor
 import numpy as np
 
 from irtorch.core.prior import Normal, InverseGamma
-from irtorch.core.map_module.base import GRMMAPModule
+from irtorch.core.module.base import GradedResponseModel
 from irtorch.core.util import positive, parameter
 
 
-class GRMMAPModuleHierarchical(GRMMAPModule):
+class HierarchicalGradedResponseModel(GradedResponseModel):
     def __init__(self,
                  response_array: np.ndarray,
                  level_index: np.ndarray):

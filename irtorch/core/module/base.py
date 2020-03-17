@@ -9,11 +9,7 @@ from irtorch.core.prior import Normal
 from irtorch.core.util import positive, parameter
 
 
-class GRMMAPModule(nn.Module):
-    """
-    Graded Response Model のパラメータを MAP 推定するための Module
-    """
-
+class GradedResponseModel(nn.Module):
     def __init__(self, response_array: np.ndarray):
         super().__init__()
 

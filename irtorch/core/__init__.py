@@ -1,2 +1,2 @@
-from .map_module.base import GRMMAPModule
-from .map_module.hierarchical import GRMMAPModuleHierarchical
+from .module.base import GradedResponseModel
+from .module.hierarchical import HierarchicalGradedResponseModel
