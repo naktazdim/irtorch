@@ -7,7 +7,7 @@ from torch.utils.data import DataLoader
 import pytorch_lightning as pl
 from pytorch_lightning.callbacks import EarlyStopping
 
-from irtorch.converter import GRMDataConverter
+from irtorch.converter import GRMInputs, GRMOutputs
 from irtorch.core import GRMMAPModule, GRMMAPModuleHierarchical
 
 
@@ -19,17 +19,15 @@ class GRMEstimator(pl.LightningModule):
                  ):
         super(GRMEstimator, self).__init__()
 
-        self.converter = GRMDataConverter(response_df, level_df)
+        inputs = GRMInputs.from_df(response_df, level_df)
+        self.meta = inputs.meta
 
         if level_df is None:
             self.is_hierarchical = False
-            self.model = GRMMAPModule(self.converter.make_response_array())
+            self.model = GRMMAPModule(inputs.response_array)
         else:
             self.is_hierarchical = True
-            self.model = GRMMAPModuleHierarchical(
-                response_array=self.converter.make_response_array(),
-                level_index=self.converter.make_level_array()
-            )
+            self.model = GRMMAPModuleHierarchical(inputs.response_array, inputs.level_array)
 
         self.batch_size = batch_size
 
@@ -64,14 +62,20 @@ class GRMEstimator(pl.LightningModule):
     def output_results(self, dir_path: str):
         dir_path = Path(dir_path)
         dir_path.mkdir(parents=True, exist_ok=True)
-        self.converter.make_a_df(self.model.a.detach().numpy()).to_csv(dir_path / "a.csv", index=False)
-        self.converter.make_b_df(self.model.b.detach().numpy()).to_csv(dir_path / "b.csv", index=False)
-        self.converter.make_t_df(self.model.t.detach().numpy()).to_csv(dir_path / "t.csv", index=False)
-        if self.converter.is_hierarchical:
-            self.converter.make_level_df(
-                self.model.b_prior_mean.detach().numpy(),
-                self.model.b_prior_std.detach().numpy()
-            ).to_csv(dir_path / "b_prior.csv", index=False)
+        outputs = GRMOutputs(
+            self.meta,
+            self.model.a.detach().numpy(),
+            self.model.b.detach().numpy(),
+            self.model.t.detach().numpy(),
+            self.model.b_prior_mean.detach().numpy() if self.is_hierarchical else None,
+            self.model.b_prior_std.detach().numpy() if self.is_hierarchical else None,
+        )
+
+        outputs.make_a_df().to_csv(dir_path / "a.csv", index=False)
+        outputs.make_b_df().to_csv(dir_path / "b.csv", index=False)
+        outputs.make_t_df().to_csv(dir_path / "t.csv", index=False)
+        if self.is_hierarchical:
+            outputs.make_level_df().to_csv(dir_path / "b_prior.csv", index=False)
 
 
 class OutputEstimates(pl.Callback):
