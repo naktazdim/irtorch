@@ -1,23 +1,10 @@
 import pytest
-import os
 
-import numpy as np
 import numpy.testing
 import pandas as pd
 
 from irtorch.converter import GRMDataConverter
-
-
-def resource_path(*paths: str) -> str:
-    return os.path.join(os.path.dirname(__file__), "resources", "converter", *paths)
-
-
-def df(*paths: str, **kwargs) -> pd.DataFrame:
-    return pd.read_csv(resource_path(*paths), **kwargs)
-
-
-def array(*paths: str, **kwargs) -> np.ndarray:
-    return np.loadtxt(resource_path(*paths), delimiter=",", **kwargs)
+from tests.util import df, array
 
 
 @pytest.fixture()
