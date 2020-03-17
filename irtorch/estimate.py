@@ -73,7 +73,7 @@ class GRMEstimator(pl.LightningModule):
         extract_output(self.meta, self.model).to_csvs(dir_path)
 
 
-class OutputEstimates(pl.Callback):
+class OutputBestEstimates(pl.Callback):
     def __init__(self, dir_path: str, estimator: GRMEstimator):
         self.dir_path = dir_path
         self.estimator = estimator
@@ -96,7 +96,7 @@ def estimate(
         level_df: pd.DataFrame = None,
 ):
     estimator = GRMEstimator(response_df, batch_size, level_df)
-    output_estimates = OutputEstimates(out_dir, estimator)
+    output_best_estimates_callback = OutputBestEstimates(out_dir, estimator)
     early_stop_callback = None if patience is None else EarlyStopping(
         monitor="log_posterior",
         mode="max",
@@ -106,7 +106,7 @@ def estimate(
     trainer = pl.Trainer(
         default_save_path=log_dir,
         early_stop_callback=early_stop_callback,
-        callbacks=[output_estimates],
+        callbacks=[output_best_estimates_callback],
         checkpoint_callback=False,
         max_epochs=n_iter
     )
