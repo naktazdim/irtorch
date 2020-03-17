@@ -2,7 +2,7 @@ import pytest
 
 import torch
 from torch import Tensor
-from irtorch.likelihood import sum_log1mexp, log_likelihood
+from irtorch.core.likelihood import sum_log1mexp, log_likelihood
 
 
 def naive_sum_log1mexp(x: Tensor) -> Tensor:

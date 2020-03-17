@@ -8,7 +8,7 @@ import pytorch_lightning as pl
 from pytorch_lightning.callbacks import EarlyStopping
 
 from irtorch.converter import GRMDataConverter
-from irtorch.map_module import GRMMAPModule
+from irtorch.core.map_module import GRMMAPModule
 
 
 class GRMEstimator(pl.LightningModule):
