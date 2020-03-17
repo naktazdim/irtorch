@@ -22,6 +22,13 @@ class GRMInputs:
         :param response_df: columns=["item", "person", "response"]
         :param level_df: columns=["item", "level"]
         """
+        ret = cls._from_response_df(response_df)
+        if level_df is not None:
+            ret._add_level(level_df)
+        return ret
+
+    @classmethod
+    def _from_response_df(cls, response_df: pd.DataFrame):
         assert "item" in response_df.columns
         assert "person" in response_df.columns
         assert "response" in response_df.columns
@@ -40,24 +47,21 @@ class GRMInputs:
             response_df.person.cat.codes.values,
             response_df.response.values
         ]
+        return GRMInputs(meta, response_array)
 
-        if level_df is None:
-            return GRMInputs(meta, response_array)
-        else:
-            assert "item" in level_df.columns
-            assert "level" in level_df.columns
-            assert level_df.item.unique().all()
+    def _add_level(self, level_df: pd.DataFrame):
+        assert "item" in level_df.columns
+        assert "level" in level_df.columns
+        assert level_df.item.unique().all()
 
-            level_df = pd.merge(
-                meta.item_category.categories.to_frame(name="item"),
-                level_df
-                    .drop_duplicates(subset="item")
-                    .astype({"item": meta.item_category}),
-                how="left"
-            )
-            level_df["level"] = level_df.level.fillna("_unknown").astype({"level": "category"})
+        level_df = pd.merge(
+            self.meta.item_category.categories.to_frame(name="item"),
+            level_df
+                .drop_duplicates(subset="item")
+                .astype({"item": self.meta.item_category}),
+            how="left"
+        )
+        level_df["level"] = level_df.level.fillna("_unknown").astype({"level": "category"})
 
-            meta.level_category = level_df.level.dtype
-            level_array = level_df.level.cat.codes.values
-
-            return GRMInputs(meta, response_array, level_array)
+        self.meta.level_category = level_df.level.dtype
+        self.level_array = level_df.level.cat.codes.values
