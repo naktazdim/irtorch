@@ -1,5 +1,3 @@
-from pathlib import Path
-
 import numpy as np
 import pandas as pd
 import torch
@@ -60,22 +58,14 @@ class GRMEstimator(pl.LightningModule):
         }
 
     def output_results(self, dir_path: str):
-        dir_path = Path(dir_path)
-        dir_path.mkdir(parents=True, exist_ok=True)
-        outputs = GRMOutputs(
+        GRMOutputs(
             self.meta,
             self.model.a.detach().numpy(),
             self.model.b.detach().numpy(),
             self.model.t.detach().numpy(),
             self.model.b_prior_mean.detach().numpy() if self.is_hierarchical else None,
             self.model.b_prior_std.detach().numpy() if self.is_hierarchical else None,
-        )
-
-        outputs.make_a_df().to_csv(dir_path / "a.csv", index=False)
-        outputs.make_b_df().to_csv(dir_path / "b.csv", index=False)
-        outputs.make_t_df().to_csv(dir_path / "t.csv", index=False)
-        if self.is_hierarchical:
-            outputs.make_level_df().to_csv(dir_path / "b_prior.csv", index=False)
+        ).to_csvs(dir_path)
 
 
 class OutputEstimates(pl.Callback):

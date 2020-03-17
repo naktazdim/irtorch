@@ -1,6 +1,7 @@
 from itertools import product
 from dataclasses import dataclass
 from typing import Optional
+from pathlib import Path
 
 import numpy as np
 import pandas as pd
@@ -77,3 +78,13 @@ class GRMOutputs:
             columns=["item", "grade"]) \
             .assign(mean=self.level_mean_array.flatten(),
                     std=self.level_std_array.flatten())
+
+    def to_csvs(self, dir_path: str):
+        dir_path = Path(dir_path)
+        dir_path.mkdir(parents=True, exist_ok=True)
+
+        self.make_a_df().to_csv(dir_path / "a.csv", index=False)
+        self.make_b_df().to_csv(dir_path / "b.csv", index=False)
+        self.make_t_df().to_csv(dir_path / "t.csv", index=False)
+        if self.level_mean_array is not None:
+            self.make_level_df().to_csv(dir_path / "b_prior.csv", index=False)
