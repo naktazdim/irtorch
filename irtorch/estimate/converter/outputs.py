@@ -75,7 +75,7 @@ class GRMOutputs:
         return pd.DataFrame(
             product(self.meta.level_category.categories,
                     np.arange(2, self.meta.n_grades + 1)),
-            columns=["item", "grade"]) \
+            columns=["level", "grade"]) \
             .assign(mean=self.level_mean_array.flatten(),
                     std=self.level_std_array.flatten())
 
