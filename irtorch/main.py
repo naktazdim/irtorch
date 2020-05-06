@@ -2,7 +2,7 @@ import argparse
 
 import pandas as pd
 
-from irtorch.estimate import estimate
+from irtorch import estimate
 
 
 def main():
