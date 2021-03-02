@@ -1,12 +1,20 @@
 import torch
 from torch import Tensor
 import torch.nn as nn
+import torch.nn.functional as F
 from torch.utils.data import TensorDataset
 import numpy as np
 
 from irtorch.estimate.model.likelihood import log_likelihood
 from irtorch.estimate.model.prior import Normal, InverseGamma
-from irtorch.estimate.model.util import positive, parameter
+
+
+def parameter(*size: int) -> nn.Parameter:
+    return nn.Parameter(torch.zeros(*size), requires_grad=True)
+
+
+def positive(tensor: torch.Tensor) -> torch.Tensor:
+    return F.softplus(tensor)  # ReLU + eps とかだとうまくいかない (おそらく勾配消失のせい)
 
 
 class GradedResponseModel(nn.Module):
