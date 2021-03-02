@@ -1,15 +1,17 @@
+from typing import Tuple
+
 import pytest
 
 import numpy as np
 import pandas as pd
 
-from irtorch.estimate.converter import GRMInputs, GRMOutputs
+from irtorch.estimate.converter import inputs_from_df, GRMMeta, GRMInputs, GRMOutputs
 from tests.util import df, array
 
 
 @pytest.fixture()
-def inputs() -> GRMInputs:
-    return GRMInputs.from_df(df("input", "response.csv"), df("input", "level.csv"))
+def meta_and_inputs() -> Tuple[GRMMeta, GRMInputs]:
+    return inputs_from_df(df("input", "response.csv"), df("input", "level.csv"))
 
 
 @pytest.fixture()
@@ -21,34 +23,38 @@ def outputs() -> GRMOutputs:
     )
 
 
-def test_make_response_array(inputs):
+def test_make_response_array(meta_and_inputs):
+    _, inputs = meta_and_inputs
     np.testing.assert_array_equal(
         inputs.response_array,
         array("output", "response_array.csv", dtype=int)
     )
 
 
-def test_make_a_df(inputs, outputs):
+def test_make_a_df(meta_and_inputs, outputs):
+    meta, _ = meta_and_inputs
     pd.testing.assert_frame_equal(
-        outputs.make_a_df(inputs.meta),
+        outputs.make_a_df(meta),
         df("output", "a.csv"),
         check_dtype=False,
         check_categorical=False
     )
 
 
-def test_make_b_df(inputs, outputs):
+def test_make_b_df(meta_and_inputs, outputs):
+    meta, _ = meta_and_inputs
     pd.testing.assert_frame_equal(
-        outputs.make_b_df(inputs.meta),
+        outputs.make_b_df(meta),
         df("output", "b.csv"),
         check_dtype=False,
         check_categorical=False
     )
 
 
-def test_make_t_df(inputs, outputs):
+def test_make_t_df(meta_and_inputs, outputs):
+    meta, _ = meta_and_inputs
     pd.testing.assert_frame_equal(
-        outputs.make_t_df(inputs.meta),
+        outputs.make_t_df(meta),
         df("output", "t.csv"),
         check_dtype=False,
         check_categorical=False

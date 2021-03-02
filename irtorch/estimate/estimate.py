@@ -5,7 +5,8 @@ from torch.utils.data import DataLoader, TensorDataset
 import pytorch_lightning as pl
 from pytorch_lightning.callbacks import EarlyStopping
 
-from irtorch.estimate.converter import GRMInputs, GRMOutputs, GRMMeta
+from irtorch.estimate.converter import inputs_from_df, GRMInputs, GRMOutputs, GRMMeta
+
 from irtorch.estimate.model import GradedResponseModel, HierarchicalGradedResponseModel
 
 
@@ -35,14 +36,11 @@ def extract_output(model: GradedResponseModel) -> GRMOutputs:
 
 class GRMEstimator(pl.LightningModule):
     def __init__(self,
-                 response_df: pd.DataFrame,
+                 inputs: GRMInputs,
                  batch_size: int,
-                 level_df: pd.DataFrame = None,
                  ):
         super(GRMEstimator, self).__init__()
 
-        inputs = GRMInputs.from_df(response_df, level_df)
-        self.meta = inputs.meta
         self.model = make_model(inputs)
         self.batch_size = batch_size
         self.dataset = TensorDataset(torch.tensor(inputs.response_array).long())
@@ -74,21 +72,22 @@ class GRMEstimator(pl.LightningModule):
             "log": {"log_posterior": -self.loss_total}
         }
 
-    def output_results(self, dir_path: str):
-        extract_output(self.model).to_csvs(dir_path, self.meta)
+    def output_results(self, dir_path: str, meta: GRMMeta):
+        extract_output(self.model).to_csvs(dir_path, meta)
 
 
 class OutputBestEstimates(pl.Callback):
-    def __init__(self, dir_path: str, estimator: GRMEstimator):
+    def __init__(self, dir_path: str, estimator: GRMEstimator, meta: GRMMeta):
         self.dir_path = dir_path
         self.estimator = estimator
         self.best = -np.inf
+        self.meta = meta
 
     def on_validation_end(self, trainer: pl.Trainer, _):
         log_posterior = trainer.callback_metrics.get("log_posterior")
         if log_posterior > self.best:
             self.best = log_posterior
-            self.estimator.output_results(self.dir_path)
+            self.estimator.output_results(self.dir_path, self.meta)
 
 
 def estimate(
@@ -100,8 +99,9 @@ def estimate(
         patience: int = None,
         level_df: pd.DataFrame = None,
 ):
-    estimator = GRMEstimator(response_df, batch_size, level_df)
-    callbacks = [OutputBestEstimates(out_dir, estimator)]
+    meta, inputs = inputs_from_df(response_df, level_df)
+    estimator = GRMEstimator(inputs, batch_size)
+    callbacks = [OutputBestEstimates(out_dir, estimator, meta)]
     if patience:
         callbacks.append(
             EarlyStopping(
