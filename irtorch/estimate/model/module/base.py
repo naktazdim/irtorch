@@ -4,7 +4,7 @@ import torch.nn as nn
 from torch.utils.data import TensorDataset
 import numpy as np
 
-from irtorch.estimate.model.likelihood import log_likelihood2
+from irtorch.estimate.model.likelihood import log_likelihood
 from irtorch.estimate.model.prior import Normal
 from irtorch.estimate.model.util import positive, parameter
 
@@ -13,15 +13,15 @@ class GradedResponseModel(nn.Module):
     def __init__(self, response_array: np.ndarray):
         super().__init__()
 
-        n_items = response_array[:, 0].max() + 1
+        self.n_items = response_array[:, 0].max() + 1
         n_persons = response_array[:, 1].max() + 1
         self.n_grades = response_array[:, 2].max()
         self.n_responses = len(response_array)
         self.dataset = TensorDataset(torch.tensor(response_array).long())
 
-        self.a_ = parameter(n_items)
-        self.b_base_ = parameter(n_items, 1)
-        self.b_diff_ = parameter(n_items, self.n_grades - 2)
+        self.a_ = parameter(self.n_items)
+        self.b_base_ = parameter(self.n_items, 1)
+        self.b_diff_ = parameter(self.n_items, self.n_grades - 2)
         self.t = parameter(n_persons)
 
         self.a_prior = Normal()
@@ -43,7 +43,17 @@ class GradedResponseModel(nn.Module):
         return self.a_prior.log_pdf(self.a) + self.b_prior.log_pdf(self.b) + self.t_prior.log_pdf(self.t)
 
     def log_likelihood(self, indices: Tensor) -> Tensor:
-        return log_likelihood2(self.a, self.b, self.t, indices[:, 0], indices[:, 1], indices[:, 2])
+        item_index = indices[:, 0]
+        person_index = indices[:, 1]
+        response_index = indices[:, 2]
+
+        inf = 1.0e3  # 本当は np.inf を入れたいが、それをすると微分のときに NaN が発生するようなので十分大きな値で代用
+        infs = torch.full((self.n_items, 1), inf)
+        b_ = torch.cat((-infs, self.b, infs), dim=1)
+        b_lower = b_[item_index, response_index - 1]
+        b_upper = b_[item_index, response_index]
+        
+        return log_likelihood(self.a[item_index], b_lower, b_upper, self.t[person_index])
 
     def log_posterior(self, indices: Tensor) -> Tensor:
         # SGDでデータの一部を渡すことを想定してpriorに補正をかけている
