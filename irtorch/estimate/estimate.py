@@ -22,10 +22,9 @@ def make_model(inputs: GRMInputs) -> GradedResponseModel:
         return HierarchicalGradedResponseModel(*args, inputs.level_array)
 
 
-def extract_output(meta: GRMMeta, model: GradedResponseModel) -> GRMOutputs:
+def extract_output(model: GradedResponseModel) -> GRMOutputs:
     is_hierarchical = isinstance(model, HierarchicalGradedResponseModel)
     return GRMOutputs(
-        meta,
         model.a.detach().numpy(),
         model.b.detach().numpy(),
         model.t.detach().numpy(),
@@ -76,7 +75,7 @@ class GRMEstimator(pl.LightningModule):
         }
 
     def output_results(self, dir_path: str):
-        extract_output(self.meta, self.model).to_csvs(dir_path)
+        extract_output(self.model).to_csvs(dir_path, self.meta)
 
 
 class OutputBestEstimates(pl.Callback):

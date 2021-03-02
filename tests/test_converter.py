@@ -14,9 +14,7 @@ def inputs() -> GRMInputs:
 
 @pytest.fixture()
 def outputs() -> GRMOutputs:
-    inputs = GRMInputs.from_df(df("input", "response.csv"), df("input", "level.csv"))
     return GRMOutputs(
-        inputs.meta,
         array("input", "a_array.csv"),
         array("input", "b_array.csv"),
         array("input", "t_array.csv")
@@ -30,27 +28,27 @@ def test_make_response_array(inputs):
     )
 
 
-def test_make_a_df(outputs):
+def test_make_a_df(inputs, outputs):
     pd.testing.assert_frame_equal(
-        outputs.make_a_df(),
+        outputs.make_a_df(inputs.meta),
         df("output", "a.csv"),
         check_dtype=False,
         check_categorical=False
     )
 
 
-def test_make_b_df(outputs):
+def test_make_b_df(inputs, outputs):
     pd.testing.assert_frame_equal(
-        outputs.make_b_df(),
+        outputs.make_b_df(inputs.meta),
         df("output", "b.csv"),
         check_dtype=False,
         check_categorical=False
     )
 
 
-def test_make_t_df(outputs):
+def test_make_t_df(inputs, outputs):
     pd.testing.assert_frame_equal(
-        outputs.make_t_df(),
+        outputs.make_t_df(inputs.meta),
         df("output", "t.csv"),
         check_dtype=False,
         check_categorical=False
