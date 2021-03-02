@@ -9,11 +9,11 @@ from irtorch.estimate.model.likelihood import log_likelihood
 from irtorch.estimate.model.prior import Normal, InverseGamma
 
 
-def parameter(*size: int) -> nn.Parameter:
+def _parameter(*size: int) -> nn.Parameter:
     return nn.Parameter(torch.zeros(*size), requires_grad=True)
 
 
-def positive(tensor: torch.Tensor) -> torch.Tensor:
+def _positive(tensor: torch.Tensor) -> torch.Tensor:
     return F.softplus(tensor)  # ReLU + eps とかだとうまくいかない (おそらく勾配消失のせい)
 
 
@@ -27,10 +27,10 @@ class GradedResponseModel(nn.Module):
         self.n_responses = len(response_array)
         self.dataset = TensorDataset(torch.tensor(response_array).long())
 
-        self.a_ = parameter(self.n_items)
-        self.b_base_ = parameter(self.n_items, 1)
-        self.b_diff_ = parameter(self.n_items, self.n_grades - 2)
-        self.t = parameter(n_persons)
+        self.a_ = _parameter(self.n_items)
+        self.b_base_ = _parameter(self.n_items, 1)
+        self.b_diff_ = _parameter(self.n_items, self.n_grades - 2)
+        self.t = _parameter(n_persons)
 
         self.a_prior = Normal()
         self.b_prior = Normal()
@@ -38,12 +38,12 @@ class GradedResponseModel(nn.Module):
 
     @property
     def a(self) -> Tensor:
-        return positive(self.a_)
+        return _positive(self.a_)
 
     @property
     def b(self):
         return torch.cumsum(
-            torch.cat([self.b_base_, positive(self.b_diff_)], dim=1),
+            torch.cat([self.b_base_, _positive(self.b_diff_)], dim=1),
             dim=1
         )
 
@@ -84,8 +84,8 @@ class HierarchicalGradedResponseModel(GradedResponseModel):
 
         n_levels = level_index.max() + 1
 
-        self.b_prior_mean = parameter(n_levels, self.n_grades - 1)
-        self.b_prior_std_ = parameter(n_levels, self.n_grades - 1)
+        self.b_prior_mean = _parameter(n_levels, self.n_grades - 1)
+        self.b_prior_std_ = _parameter(n_levels, self.n_grades - 1)
 
         self.b_prior_mean_prior = Normal()
         self.b_prior_std_prior = InverseGamma()
@@ -93,7 +93,7 @@ class HierarchicalGradedResponseModel(GradedResponseModel):
 
     @property
     def b_prior_std(self):
-        return positive(self.b_prior_std_)
+        return _positive(self.b_prior_std_)
 
     def log_prior(self) -> Tensor:
         self.b_prior = Normal(self.b_prior_mean[self.level_index, :],
