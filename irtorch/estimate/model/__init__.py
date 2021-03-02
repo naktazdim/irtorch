@@ -1,2 +1,2 @@
-from .module.base import GradedResponseModel
-from .module.hierarchical import HierarchicalGradedResponseModel
+from irtorch.estimate.model.module import GradedResponseModel, HierarchicalGradedResponseModel
+
