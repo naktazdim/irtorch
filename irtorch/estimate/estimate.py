@@ -10,10 +10,16 @@ from irtorch.estimate.model import GradedResponseModel, HierarchicalGradedRespon
 
 
 def make_model(inputs: GRMInputs) -> GradedResponseModel:
+    n_items = inputs.response_array[:, 0].max() + 1
+    n_persons = inputs.response_array[:, 1].max() + 1
+    n_grades = inputs.response_array[:, 2].max()
+    n_responses = len(inputs.response_array)
+
+    args = [n_items, n_persons, n_grades, n_responses]
     if inputs.level_array is None:
-        return GradedResponseModel(inputs.response_array)
+        return GradedResponseModel(*args)
     else:
-        return HierarchicalGradedResponseModel(inputs.response_array, inputs.level_array)
+        return HierarchicalGradedResponseModel(*args, inputs.level_array)
 
 
 def extract_output(meta: GRMMeta, model: GradedResponseModel) -> GRMOutputs:

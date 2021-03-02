@@ -17,13 +17,16 @@ def _positive(tensor: torch.Tensor) -> torch.Tensor:
 
 
 class GradedResponseModel(nn.Module):
-    def __init__(self, response_array: np.ndarray):
+    def __init__(self,
+                 n_items: int,
+                 n_persons: int,
+                 n_grades: int,
+                 n_responses: int):
         super().__init__()
 
-        self.n_items = response_array[:, 0].max() + 1
-        n_persons = response_array[:, 1].max() + 1
-        self.n_grades = response_array[:, 2].max()
-        self.n_responses = len(response_array)
+        self.n_items = n_items
+        self.n_grades = n_grades
+        self.n_responses = n_responses
 
         self.a_ = _parameter(self.n_items)
         self.b_base_ = _parameter(self.n_items, 1)
@@ -76,9 +79,12 @@ class GradedResponseModel(nn.Module):
 
 class HierarchicalGradedResponseModel(GradedResponseModel):
     def __init__(self,
-                 response_array: np.ndarray,
+                 n_items: int,
+                 n_persons: int,
+                 n_grades: int,
+                 n_responses: int,
                  level_index: np.ndarray):
-        super().__init__(response_array)
+        super().__init__(n_items, n_persons, n_grades, n_responses)
 
         n_levels = level_index.max() + 1
 
