@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 import torch
-from torch.utils.data import DataLoader
+from torch.utils.data import DataLoader, TensorDataset
 import pytorch_lightning as pl
 from pytorch_lightning.callbacks import EarlyStopping
 
@@ -40,7 +40,7 @@ class GRMEstimator(pl.LightningModule):
         self.meta = inputs.meta
         self.model = make_model(inputs)
         self.batch_size = batch_size
-
+        self.dataset = TensorDataset(torch.tensor(inputs.response_array).long())
         self.loss_total = 0.0
 
     def configure_optimizers(self):
@@ -58,7 +58,7 @@ class GRMEstimator(pl.LightningModule):
         self.loss_total = 0.0
 
     def train_dataloader(self):
-        return DataLoader(self.model.dataset, batch_size=self.batch_size, shuffle=True)
+        return DataLoader(self.dataset, batch_size=self.batch_size, shuffle=True)
 
     def validation_step(self):
         pass  # dummy implementation to enable validation

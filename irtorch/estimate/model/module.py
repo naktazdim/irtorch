@@ -2,7 +2,6 @@ import torch
 from torch import Tensor
 import torch.nn as nn
 import torch.nn.functional as F
-from torch.utils.data import TensorDataset
 import numpy as np
 
 from irtorch.estimate.model.likelihood import log_likelihood
@@ -25,7 +24,6 @@ class GradedResponseModel(nn.Module):
         n_persons = response_array[:, 1].max() + 1
         self.n_grades = response_array[:, 2].max()
         self.n_responses = len(response_array)
-        self.dataset = TensorDataset(torch.tensor(response_array).long())
 
         self.a_ = _parameter(self.n_items)
         self.b_base_ = _parameter(self.n_items, 1)
