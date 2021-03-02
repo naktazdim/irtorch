@@ -96,17 +96,19 @@ def estimate(
         level_df: pd.DataFrame = None,
 ):
     estimator = GRMEstimator(response_df, batch_size, level_df)
-    output_best_estimates_callback = OutputBestEstimates(out_dir, estimator)
-    early_stop_callback = None if patience is None else EarlyStopping(
-        monitor="log_posterior",
-        mode="max",
-        patience=patience
-    )
+    callbacks = [OutputBestEstimates(out_dir, estimator)]
+    if patience:
+        callbacks.append(
+            EarlyStopping(
+                monitor="log_posterior",
+                mode="max",
+                patience=patience
+            )
+        )
 
     trainer = pl.Trainer(
-        default_save_path=log_dir,
-        early_stop_callback=early_stop_callback,
-        callbacks=[output_best_estimates_callback],
+        default_root_dir=log_dir,
+        callbacks=callbacks,
         checkpoint_callback=False,
         max_epochs=n_iter
     )
