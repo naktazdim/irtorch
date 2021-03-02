@@ -31,7 +31,6 @@ def log_likelihood(a: Tensor,
 
     Σ log( sigmoid(a * (t - b_lower)) - sigmoid(a * (t - b_upper)) )
     だが、素朴に計算すると桁落ちで誤差が大きくなったりするので対策をしている。
-    log_likelihood2() との違いは入力の形式。
 
     :param a: (n_responses,)
     :param b_lower: (n_responses,)
