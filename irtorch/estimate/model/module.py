@@ -6,7 +6,7 @@ import numpy as np
 
 from irtorch.estimate.model.likelihood import log_likelihood
 from irtorch.estimate.model.prior import Normal, InverseGamma
-from irtorch.estimate.model.data import GRMShapes
+from irtorch.estimate.model.data import GRMShapes, GRMOutputs
 
 
 def _parameter(*size: int) -> nn.Parameter:
@@ -15,6 +15,10 @@ def _parameter(*size: int) -> nn.Parameter:
 
 def _positive(tensor: torch.Tensor) -> torch.Tensor:
     return F.softplus(tensor)  # ReLU + eps とかだとうまくいかない (おそらく勾配消失のせい)
+
+
+def _to_numpy(tensor: torch.Tensor) -> np.ndarray:
+    return tensor.cpu().detach().numpy()
 
 
 class GradedResponseModel(nn.Module):
@@ -73,6 +77,13 @@ class GradedResponseModel(nn.Module):
         """
         return -self.log_posterior(indices)  # 「事後確率の対数のマイナスを最小化」⇔「事後確率を最大化」
 
+    def grm_outputs(self) -> GRMOutputs:
+        return GRMOutputs(
+            _to_numpy(self.a),
+            _to_numpy(self.b),
+            _to_numpy(self.t)
+        )
+
 
 class HierarchicalGradedResponseModel(GradedResponseModel):
     def __init__(self,
@@ -99,3 +110,12 @@ class HierarchicalGradedResponseModel(GradedResponseModel):
         return super().log_prior() + \
                self.b_prior_mean_prior.log_pdf(self.b_prior_mean) + \
                self.b_prior_std_prior.log_pdf(self.b_prior_std)
+
+    def grm_outputs(self) -> GRMOutputs:
+        return GRMOutputs(
+            _to_numpy(self.a),
+            _to_numpy(self.b),
+            _to_numpy(self.t),
+            _to_numpy(self.b_prior_mean),
+            _to_numpy(self.b_prior_std_)
+        )

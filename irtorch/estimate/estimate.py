@@ -6,7 +6,7 @@ import pytorch_lightning as pl
 from pytorch_lightning.callbacks import EarlyStopping
 
 from irtorch.estimate.converter import inputs_from_df, GRMMeta, to_csvs
-from irtorch.estimate.model import GRMInputs, GRMOutputs
+from irtorch.estimate.model import GRMInputs
 
 from irtorch.estimate.model import GradedResponseModel, HierarchicalGradedResponseModel
 
@@ -16,17 +16,6 @@ def make_model(inputs: GRMInputs) -> GradedResponseModel:
         return GradedResponseModel(inputs.shapes)
     else:
         return HierarchicalGradedResponseModel(inputs.shapes, inputs.level_array)
-
-
-def extract_output(model: GradedResponseModel) -> GRMOutputs:
-    is_hierarchical = isinstance(model, HierarchicalGradedResponseModel)
-    return GRMOutputs(
-        model.a.detach().numpy(),
-        model.b.detach().numpy(),
-        model.t.detach().numpy(),
-        model.b_prior_mean.detach().numpy() if is_hierarchical else None,
-        model.b_prior_std.detach().numpy() if is_hierarchical else None,
-    )
 
 
 class GRMEstimator(pl.LightningModule):
@@ -68,7 +57,7 @@ class GRMEstimator(pl.LightningModule):
         }
 
     def output_results(self, dir_path: str, meta: GRMMeta):
-        to_csvs(extract_output(self.model), dir_path, meta)
+        to_csvs(self.model.grm_outputs(), dir_path, meta)
 
 
 class OutputBestEstimates(pl.Callback):
