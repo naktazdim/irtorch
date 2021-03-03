@@ -6,6 +6,7 @@ import numpy as np
 import pandas as pd
 
 from irtorch.estimate.converter import inputs_from_df, GRMMeta, GRMInputs, GRMOutputs
+from irtorch.estimate.converter.outputs import make_a_df, make_b_df, make_t_df, to_csvs
 from tests.util import df, array
 
 
@@ -34,7 +35,7 @@ def test_make_response_array(meta_and_inputs):
 def test_make_a_df(meta_and_inputs, outputs):
     meta, _ = meta_and_inputs
     pd.testing.assert_frame_equal(
-        outputs.make_a_df(meta),
+        make_a_df(outputs, meta),
         df("output", "a.csv"),
         check_dtype=False,
         check_categorical=False
@@ -44,7 +45,7 @@ def test_make_a_df(meta_and_inputs, outputs):
 def test_make_b_df(meta_and_inputs, outputs):
     meta, _ = meta_and_inputs
     pd.testing.assert_frame_equal(
-        outputs.make_b_df(meta),
+        make_b_df(outputs, meta),
         df("output", "b.csv"),
         check_dtype=False,
         check_categorical=False
@@ -54,7 +55,7 @@ def test_make_b_df(meta_and_inputs, outputs):
 def test_make_t_df(meta_and_inputs, outputs):
     meta, _ = meta_and_inputs
     pd.testing.assert_frame_equal(
-        outputs.make_t_df(meta),
+        make_t_df(outputs, meta),
         df("output", "t.csv"),
         check_dtype=False,
         check_categorical=False

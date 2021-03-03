@@ -5,7 +5,7 @@ from torch.utils.data import DataLoader, TensorDataset
 import pytorch_lightning as pl
 from pytorch_lightning.callbacks import EarlyStopping
 
-from irtorch.estimate.converter import inputs_from_df, GRMInputs, GRMOutputs, GRMMeta
+from irtorch.estimate.converter import inputs_from_df, GRMInputs, GRMOutputs, GRMMeta, to_csvs
 
 from irtorch.estimate.model import GradedResponseModel, HierarchicalGradedResponseModel
 
@@ -73,7 +73,7 @@ class GRMEstimator(pl.LightningModule):
         }
 
     def output_results(self, dir_path: str, meta: GRMMeta):
-        extract_output(self.model).to_csvs(dir_path, meta)
+        to_csvs(extract_output(self.model), dir_path, meta)
 
 
 class OutputBestEstimates(pl.Callback):
