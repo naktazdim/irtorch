@@ -6,7 +6,7 @@ import numpy as np
 
 from irtorch.estimate.model.likelihood import log_likelihood
 from irtorch.estimate.model.prior import Normal, InverseGamma
-from irtorch.estimate.model.data import GRMInputs
+from irtorch.estimate.model.data import GRMShapes
 
 
 def _parameter(*size: int) -> nn.Parameter:
@@ -18,21 +18,17 @@ def _positive(tensor: torch.Tensor) -> torch.Tensor:
 
 
 class GradedResponseModel(nn.Module):
-    def __init__(self,
-                 n_items: int,
-                 n_persons: int,
-                 n_grades: int,
-                 n_responses: int):
+    def __init__(self, shapes: GRMShapes):
         super().__init__()
 
-        self.n_items = n_items
-        self.n_grades = n_grades
-        self.n_responses = n_responses
+        self.n_items = shapes.n_items
+        self.n_grades = shapes.n_grades
+        self.n_responses = shapes.n_responses
 
         self.a_ = _parameter(self.n_items)
         self.b_base_ = _parameter(self.n_items, 1)
         self.b_diff_ = _parameter(self.n_items, self.n_grades - 2)
-        self.t = _parameter(n_persons)
+        self.t = _parameter(shapes.n_persons)
 
         self.a_prior = Normal()
         self.b_prior = Normal()
@@ -80,12 +76,9 @@ class GradedResponseModel(nn.Module):
 
 class HierarchicalGradedResponseModel(GradedResponseModel):
     def __init__(self,
-                 n_items: int,
-                 n_persons: int,
-                 n_grades: int,
-                 n_responses: int,
+                 shapes: GRMShapes,
                  level_index: np.ndarray):
-        super().__init__(n_items, n_persons, n_grades, n_responses)
+        super().__init__(shapes)
 
         n_levels = level_index.max() + 1
 
