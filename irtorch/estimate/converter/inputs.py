@@ -1,16 +1,10 @@
-from dataclasses import dataclass
-from typing import Optional, Tuple
+from typing import Tuple
 
 import numpy as np
 import pandas as pd
 
 from .meta import GRMMeta
-
-
-@dataclass()
-class GRMInputs:
-    response_array: np.ndarray
-    level_array: Optional[np.ndarray] = None
+from irtorch.estimate.model import GRMInputs
 
 
 def inputs_from_df(response_df: pd.DataFrame,

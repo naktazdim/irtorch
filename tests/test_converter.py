@@ -5,7 +5,8 @@ import pytest
 import numpy as np
 import pandas as pd
 
-from irtorch.estimate.converter import inputs_from_df, GRMMeta, GRMInputs, GRMOutputs
+from irtorch.estimate.converter import inputs_from_df, GRMMeta
+from irtorch.estimate.model import GRMInputs, GRMOutputs
 from irtorch.estimate.converter.outputs import make_a_df, make_b_df, make_t_df, to_csvs
 from tests.util import df, array
 

@@ -5,7 +5,8 @@ from torch.utils.data import DataLoader, TensorDataset
 import pytorch_lightning as pl
 from pytorch_lightning.callbacks import EarlyStopping
 
-from irtorch.estimate.converter import inputs_from_df, GRMInputs, GRMOutputs, GRMMeta, to_csvs
+from irtorch.estimate.converter import inputs_from_df, GRMMeta, to_csvs
+from irtorch.estimate.model import GRMInputs, GRMOutputs
 
 from irtorch.estimate.model import GradedResponseModel, HierarchicalGradedResponseModel
 

@@ -1,21 +1,11 @@
 from itertools import product
-from dataclasses import dataclass
-from typing import Optional
 from pathlib import Path
 
 import numpy as np
 import pandas as pd
 
 from .meta import GRMMeta
-
-
-@dataclass()
-class GRMOutputs:
-    a_array: np.ndarray
-    b_array: np.ndarray
-    t_array: np.ndarray
-    level_mean_array: Optional[np.ndarray] = None
-    level_std_array: Optional[np.ndarray] = None
+from irtorch.estimate.model import GRMOutputs
 
 
 def make_a_df(outputs: GRMOutputs, meta: GRMMeta) -> pd.DataFrame:
