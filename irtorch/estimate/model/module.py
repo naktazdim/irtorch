@@ -6,6 +6,7 @@ import numpy as np
 
 from irtorch.estimate.model.likelihood import log_likelihood
 from irtorch.estimate.model.prior import Normal, InverseGamma
+from irtorch.estimate.model.data import GRMInputs
 
 
 def _parameter(*size: int) -> nn.Parameter:

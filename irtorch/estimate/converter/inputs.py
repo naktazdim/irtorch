@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 
 from .meta import GRMMeta
-from irtorch.estimate.model import GRMInputs
+from irtorch.estimate.model import GRMInputs, GRMShapes
 
 
 def inputs_from_df(response_df: pd.DataFrame,
@@ -30,7 +30,13 @@ def inputs_from_df(response_df: pd.DataFrame,
     inputs = GRMInputs(
         np.c_[response_df.item.cat.codes.values,
               response_df.person.cat.codes.values,
-              response_df.response.values]
+              response_df.response.values],
+        GRMShapes(
+            len(meta.item_category.categories),
+            len(meta.person_category.categories),
+            meta.n_grades,
+            len(response_df)
+        )
     )
 
     if level_df is not None:
@@ -49,5 +55,6 @@ def inputs_from_df(response_df: pd.DataFrame,
 
         meta.level_category = level_df.level.dtype
         inputs.level_array = level_df.level.cat.codes.values
+        inputs.shapes.n_levels = len(meta.level_category.categories)
 
     return meta, inputs
