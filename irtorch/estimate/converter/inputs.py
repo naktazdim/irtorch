@@ -1,4 +1,5 @@
-from typing import Tuple
+from typing import Tuple, Optional
+from dataclasses import dataclass
 
 import numpy as np
 import pandas as pd
@@ -7,13 +8,19 @@ from .meta import GRMMeta
 from irtorch.estimate.model import GRMInputs, GRMShapes
 
 
-def inputs_from_df(response_df: pd.DataFrame,
-                   level_df: pd.DataFrame = None) -> Tuple[GRMMeta, GRMInputs]:
+@dataclass()
+class InputDFs:
     """
+    response_df: columns=["item", "person", "response"]
+    level_df: columns=["item", "level"]
+    """
+    response_df: pd.DataFrame
+    level_df: Optional[pd.DataFrame] = None
 
-    :param response_df: columns=["item", "person", "response"]
-    :param level_df: columns=["item", "level"]
-    """
+
+def inputs_from_df(input_dfs: InputDFs) -> Tuple[GRMMeta, GRMInputs]:
+    response_df, level_df = input_dfs.response_df, input_dfs.level_df
+
     assert "item" in response_df.columns
     assert "person" in response_df.columns
     assert "response" in response_df.columns

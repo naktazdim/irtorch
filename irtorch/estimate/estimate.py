@@ -5,7 +5,7 @@ from torch.utils.data import DataLoader, TensorDataset
 import pytorch_lightning as pl
 from pytorch_lightning.callbacks import EarlyStopping
 
-from irtorch.estimate.converter import inputs_from_df, GRMMeta, to_csvs
+from irtorch.estimate.converter import inputs_from_df, GRMMeta, to_csvs, InputDFs
 from irtorch.estimate.model import GRMInputs
 
 from irtorch.estimate.model import GradedResponseModel, HierarchicalGradedResponseModel
@@ -83,7 +83,7 @@ def estimate(
         patience: int = None,
         level_df: pd.DataFrame = None,
 ):
-    meta, inputs = inputs_from_df(response_df, level_df)
+    meta, inputs = inputs_from_df(InputDFs(response_df, level_df))
     estimator = GRMEstimator(inputs, batch_size)
     callbacks = [OutputBestEstimates(out_dir, estimator, meta)]
     if patience:

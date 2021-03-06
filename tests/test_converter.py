@@ -5,7 +5,7 @@ import pytest
 import numpy as np
 import pandas as pd
 
-from irtorch.estimate.converter import inputs_from_df, GRMMeta
+from irtorch.estimate.converter import inputs_from_df, GRMMeta, InputDFs
 from irtorch.estimate.model import GRMInputs, GRMOutputs
 from irtorch.estimate.converter.outputs import make_a_df, make_b_df, make_t_df, make_output_dfs
 from tests.util import df, array
@@ -13,7 +13,8 @@ from tests.util import df, array
 
 @pytest.fixture()
 def meta_and_inputs() -> Tuple[GRMMeta, GRMInputs]:
-    return inputs_from_df(df("input", "response.csv"), df("input", "level.csv"))
+    input_dfs = InputDFs(df("input", "response.csv"), df("input", "level.csv"))
+    return inputs_from_df(input_dfs)
 
 
 @pytest.fixture()
