@@ -1,5 +1,4 @@
 from dataclasses import dataclass
-from typing import Optional
 
 import numpy as np
 
@@ -10,14 +9,14 @@ class GRMShapes:
     n_persons: int
     n_grades: int
     n_responses: int
-    n_levels: Optional[np.ndarray] = None
+    n_levels: int
 
 
 @dataclass()
 class GRMInputs:
     response_array: np.ndarray
     shapes: GRMShapes
-    level_array: Optional[np.ndarray] = None
+    level_array: np.ndarray
 
 
 @dataclass()
@@ -25,5 +24,5 @@ class GRMOutputs:
     a_array: np.ndarray
     b_array: np.ndarray
     t_array: np.ndarray
-    level_mean_array: Optional[np.ndarray] = None
-    level_std_array: Optional[np.ndarray] = None
+    level_mean_array: np.ndarray
+    level_std_array: np.ndarray
