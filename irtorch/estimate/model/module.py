@@ -22,21 +22,29 @@ def _to_numpy(tensor: torch.Tensor) -> np.ndarray:
 
 
 class GradedResponseModel(nn.Module):
-    def __init__(self, shapes: GRMShapes):
+    def __init__(self, shapes: GRMShapes,
+                 level_index: np.ndarray):
         super().__init__()
 
         self.n_items = shapes.n_items
         self.n_grades = shapes.n_grades
         self.n_responses = shapes.n_responses
+        n_levels = level_index.max() + 1
+
+        self.level_index = torch.from_numpy(level_index).long()
 
         self.a_ = _parameter(self.n_items)
         self.b_base_ = _parameter(self.n_items, 1)
         self.b_diff_ = _parameter(self.n_items, self.n_grades - 2)
         self.t = _parameter(shapes.n_persons)
+        self.b_prior_mean = _parameter(n_levels, self.n_grades - 1)
+        self.b_prior_std_ = _parameter(n_levels, self.n_grades - 1)
 
         self.a_prior = Normal()
         self.b_prior = Normal()
         self.t_prior = Normal()
+        self.b_prior_mean_prior = Normal()
+        self.b_prior_std_prior = InverseGamma()
 
     @property
     def a(self) -> Tensor:
@@ -49,8 +57,17 @@ class GradedResponseModel(nn.Module):
             dim=1
         )
 
+    @property
+    def b_prior_std(self):
+        return _positive(self.b_prior_std_)
+
     def log_prior(self) -> Tensor:
-        return self.a_prior.log_pdf(self.a) + self.b_prior.log_pdf(self.b) + self.t_prior.log_pdf(self.t)
+        self.b_prior = Normal(self.b_prior_mean[self.level_index, :],
+                              self.b_prior_std[self.level_index, :])
+
+        return self.a_prior.log_pdf(self.a) + self.b_prior.log_pdf(self.b) + self.t_prior.log_pdf(self.t) + \
+               self.b_prior_mean_prior.log_pdf(self.b_prior_mean) + \
+               self.b_prior_std_prior.log_pdf(self.b_prior_std)
 
     def log_likelihood(self, indices: Tensor) -> Tensor:
         item_index = indices[:, 0]
@@ -76,40 +93,6 @@ class GradedResponseModel(nn.Module):
         :return:
         """
         return -self.log_posterior(indices)  # 「事後確率の対数のマイナスを最小化」⇔「事後確率を最大化」
-
-    def grm_outputs(self) -> GRMOutputs:
-        return GRMOutputs(
-            _to_numpy(self.a),
-            _to_numpy(self.b),
-            _to_numpy(self.t)
-        )
-
-
-class HierarchicalGradedResponseModel(GradedResponseModel):
-    def __init__(self,
-                 shapes: GRMShapes,
-                 level_index: np.ndarray):
-        super().__init__(shapes)
-
-        n_levels = level_index.max() + 1
-
-        self.b_prior_mean = _parameter(n_levels, self.n_grades - 1)
-        self.b_prior_std_ = _parameter(n_levels, self.n_grades - 1)
-
-        self.b_prior_mean_prior = Normal()
-        self.b_prior_std_prior = InverseGamma()
-        self.level_index = torch.from_numpy(level_index).long()
-
-    @property
-    def b_prior_std(self):
-        return _positive(self.b_prior_std_)
-
-    def log_prior(self) -> Tensor:
-        self.b_prior = Normal(self.b_prior_mean[self.level_index, :],
-                              self.b_prior_std[self.level_index, :])
-        return super().log_prior() + \
-               self.b_prior_mean_prior.log_pdf(self.b_prior_mean) + \
-               self.b_prior_std_prior.log_pdf(self.b_prior_std)
 
     def grm_outputs(self) -> GRMOutputs:
         return GRMOutputs(

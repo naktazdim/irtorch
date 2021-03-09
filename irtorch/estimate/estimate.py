@@ -6,16 +6,8 @@ import pytorch_lightning as pl
 from pytorch_lightning.callbacks import EarlyStopping
 
 from irtorch.estimate.converter import InputDFs, Converter
-from irtorch.estimate.model import GRMInputs
 
-from irtorch.estimate.model import GradedResponseModel, HierarchicalGradedResponseModel
-
-
-def make_model(inputs: GRMInputs) -> GradedResponseModel:
-    if inputs.level_array is None:
-        return GradedResponseModel(inputs.shapes)
-    else:
-        return HierarchicalGradedResponseModel(inputs.shapes, inputs.level_array)
+from irtorch.estimate.model import GradedResponseModel
 
 
 class GRMEstimator(pl.LightningModule):
@@ -28,7 +20,7 @@ class GRMEstimator(pl.LightningModule):
         self.converter = Converter()
         inputs = self.converter.inputs_from_dfs(input_dfs)
 
-        self.model = make_model(inputs)
+        self.model = GradedResponseModel(inputs.shapes, inputs.level_array)
         self.batch_size = batch_size
         self.dataset = TensorDataset(torch.tensor(inputs.response_array).long())
         self.loss_total = 0.0
