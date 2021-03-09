@@ -40,12 +40,6 @@ class GradedResponseModel(nn.Module):
         self.b_prior_mean = _parameter(n_levels, self.n_grades - 1)
         self.b_prior_std_ = _parameter(n_levels, self.n_grades - 1)
 
-        self.a_prior = Normal()
-        self.b_prior = Normal()
-        self.t_prior = Normal()
-        self.b_prior_mean_prior = Normal()
-        self.b_prior_std_prior = InverseGamma()
-
     @property
     def a(self) -> Tensor:
         return _positive(self.a_)
@@ -62,12 +56,16 @@ class GradedResponseModel(nn.Module):
         return _positive(self.b_prior_std_)
 
     def log_prior(self) -> Tensor:
-        self.b_prior = Normal(self.b_prior_mean[self.level_index, :],
-                              self.b_prior_std[self.level_index, :])
+        a_prior = Normal()
+        b_prior = Normal(self.b_prior_mean[self.level_index, :],
+                         self.b_prior_std[self.level_index, :])
+        t_prior = Normal()
+        b_prior_mean_prior = Normal()
+        b_prior_std_prior = InverseGamma()
 
-        return self.a_prior.log_pdf(self.a) + self.b_prior.log_pdf(self.b) + self.t_prior.log_pdf(self.t) + \
-               self.b_prior_mean_prior.log_pdf(self.b_prior_mean) + \
-               self.b_prior_std_prior.log_pdf(self.b_prior_std)
+        return a_prior.log_pdf(self.a) + b_prior.log_pdf(self.b) + t_prior.log_pdf(self.t) + \
+               b_prior_mean_prior.log_pdf(self.b_prior_mean) + \
+               b_prior_std_prior.log_pdf(self.b_prior_std)
 
     def log_likelihood(self, indices: Tensor) -> Tensor:
         item_index = indices[:, 0]
