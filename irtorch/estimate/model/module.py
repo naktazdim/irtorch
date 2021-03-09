@@ -26,19 +26,16 @@ class GradedResponseModel(nn.Module):
                  level_index: np.ndarray):
         super().__init__()
 
-        self.n_items = shapes.n_items
-        self.n_grades = shapes.n_grades
-        self.n_responses = shapes.n_responses
-        n_levels = level_index.max() + 1
+        self.shapes = shapes
 
         self.level_index = torch.from_numpy(level_index).long()
 
-        self.a_ = _parameter(self.n_items)
-        self.b_base_ = _parameter(self.n_items, 1)
-        self.b_diff_ = _parameter(self.n_items, self.n_grades - 2)
+        self.a_ = _parameter(shapes.n_items)
+        self.b_base_ = _parameter(shapes.n_items, 1)
+        self.b_diff_ = _parameter(shapes.n_items, shapes.n_grades - 2)
         self.t = _parameter(shapes.n_persons)
-        self.b_prior_mean = _parameter(n_levels, self.n_grades - 1)
-        self.b_prior_std_ = _parameter(n_levels, self.n_grades - 1)
+        self.b_prior_mean = _parameter(shapes.n_levels, shapes.n_grades - 1)
+        self.b_prior_std_ = _parameter(shapes.n_levels, shapes.n_grades - 1)
 
     @property
     def a(self) -> Tensor:
@@ -73,7 +70,7 @@ class GradedResponseModel(nn.Module):
         response_index = indices[:, 2]
 
         inf = 1.0e3  # 本当は np.inf を入れたいが、それをすると微分のときに NaN が発生するようなので十分大きな値で代用
-        infs = torch.full((self.n_items, 1), inf)
+        infs = torch.full((self.shapes.n_items, 1), inf)
         b_ = torch.cat((-infs, self.b, infs), dim=1)
         b_lower = b_[item_index, response_index - 1]
         b_upper = b_[item_index, response_index]
@@ -82,7 +79,7 @@ class GradedResponseModel(nn.Module):
 
     def log_posterior(self, indices: Tensor) -> Tensor:
         # SGDでデータの一部を渡すことを想定してpriorに補正をかけている
-        return self.log_likelihood(indices) + self.log_prior() * (indices.shape[0] / self.n_responses)
+        return self.log_likelihood(indices) + self.log_prior() * (indices.shape[0] / self.shapes.n_responses)
 
     def forward(self, indices: Tensor) -> Tensor:
         """
