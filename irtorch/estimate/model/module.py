@@ -100,5 +100,5 @@ class GradedResponseModel(nn.Module):
             _to_numpy(self.b),
             _to_numpy(self.t),
             _to_numpy(self.b_prior_mean),
-            _to_numpy(self.b_prior_std_)
+            _to_numpy(self.b_prior_std)
         )
