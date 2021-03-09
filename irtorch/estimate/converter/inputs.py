@@ -46,22 +46,24 @@ def inputs_from_df(input_dfs: InputDFs) -> Tuple[GRMMeta, GRMInputs]:
         )
     )
 
-    if level_df is not None:
-        assert "item" in level_df.columns
-        assert "level" in level_df.columns
-        assert level_df.item.unique().all()
+    if level_df is None:
+        level_df = pd.DataFrame(columns=["item", "level"])
 
-        level_df = pd.merge(
-            meta.item_category.categories.to_frame(name="item"),
-            level_df
-                .drop_duplicates(subset="item")
-                .astype({"item": meta.item_category}),
-            how="left"
-        )
-        level_df["level"] = level_df.level.fillna("_unknown").astype({"level": "category"})
+    assert "item" in level_df.columns
+    assert "level" in level_df.columns
+    assert level_df.item.unique().all()
 
-        meta.level_category = level_df.level.dtype
-        inputs.level_array = level_df.level.cat.codes.values
-        inputs.shapes.n_levels = len(meta.level_category.categories)
+    level_df = pd.merge(
+        meta.item_category.categories.to_frame(name="item"),
+        level_df
+            .drop_duplicates(subset="item")
+            .astype({"item": meta.item_category}),
+        how="left"
+    )
+    level_df["level"] = level_df.level.fillna("_unknown").astype({"level": "category"})
+
+    meta.level_category = level_df.level.dtype
+    inputs.level_array = level_df.level.cat.codes.values
+    inputs.shapes.n_levels = len(meta.level_category.categories)
 
     return meta, inputs
