@@ -10,63 +10,6 @@ from .meta import GRMMeta
 from irtorch.estimate.model import GRMOutputs
 
 
-def make_a_df(outputs: GRMOutputs, meta: GRMMeta) -> pd.DataFrame:
-    """
-
-    :return: columns=(item, a)
-    """
-    return pd.DataFrame().assign(item=meta.item_category.categories, a=outputs.a_array)
-
-
-def make_b_df(outputs: GRMOutputs, meta: GRMMeta) -> pd.DataFrame:
-    """
-    |item|grade| b |
-    |foo |  2  |   |
-    |foo |  3  |   |
-    |foo |  4  |   |
-    |bar |  2  |   |
-    |bar |  3  |   |
-    |bar |  4  |   |
-    ...
-
-    :return: columns=(item, grade, b)
-    """
-    return pd.DataFrame(
-        product(meta.item_category.categories,
-                np.arange(2, meta.n_grades + 1)),
-        columns=["item", "grade"]) \
-        .assign(b=outputs.b_array.flatten())
-
-
-def make_t_df(outputs: GRMOutputs, meta: GRMMeta) -> pd.DataFrame:
-    """
-
-    :return: columns=(person, t)
-    """
-    return pd.DataFrame().assign(person=meta.person_category.categories, t=outputs.t_array)
-
-
-def make_level_df(outputs: GRMOutputs, meta: GRMMeta) -> pd.DataFrame:
-    """
-    |level|grade| b |
-    | foo |  2  |   |
-    | foo |  3  |   |
-    | foo |  4  |   |
-    | bar |  2  |   |
-    | bar |  3  |   |
-    | bar |  4  |   |
-    ...
-
-    :return: columns=(level, grade, mean, std)
-    """
-    return pd.DataFrame(
-        product(meta.level_category.categories,
-                np.arange(2, meta.n_grades + 1)),
-        columns=["level", "grade"]) \
-        .assign(mean=outputs.level_mean_array.flatten(),
-                std=outputs.level_std_array.flatten())
-
-
 @dataclass()
 class OutputDFs:
     a: pd.DataFrame
@@ -88,18 +31,24 @@ def make_output_dfs(outputs: GRMOutputs, meta: GRMMeta) -> OutputDFs:
     assert outputs.a_array.shape == (meta.n_items,)
     assert outputs.b_array.shape == (meta.n_items, meta.n_grades - 1)
     assert outputs.t_array.shape == (meta.n_persons,)
-    if outputs.level_mean_array is not None:
-        assert outputs.level_mean_array.shape == (meta.n_levels, meta.n_grades - 1)
-        assert outputs.level_std_array.shape == (meta.n_levels, meta.n_grades - 1)
+    assert outputs.level_mean_array.shape == (meta.n_levels, meta.n_grades - 1)
+    assert outputs.level_std_array.shape == (meta.n_levels, meta.n_grades - 1)
 
-    output_dfs = OutputDFs(
-        make_a_df(outputs, meta),
-        make_b_df(outputs, meta),
-        make_t_df(outputs, meta)
-    )
-    if outputs.level_mean_array is not None:
-        output_dfs.level = make_level_df(outputs, meta)
-    return output_dfs
+    a_df = pd.DataFrame().assign(item=meta.item_category.categories, a=outputs.a_array)
+    b_df = pd.DataFrame(
+        product(meta.item_category.categories,
+                np.arange(2, meta.n_grades + 1)),
+        columns=["item", "grade"]) \
+        .assign(b=outputs.b_array.flatten())
+    t_df = pd.DataFrame().assign(person=meta.person_category.categories, t=outputs.t_array)
+    level_df = pd.DataFrame(
+        product(meta.level_category.categories,
+                np.arange(2, meta.n_grades + 1)),
+        columns=["level", "grade"]) \
+        .assign(mean=outputs.level_mean_array.flatten(),
+                std=outputs.level_std_array.flatten())
+
+    return OutputDFs(a_df, b_df, t_df, level_df)
 
 
 def to_csvs(outputs: GRMOutputs, dir_path: str, meta: GRMMeta):
