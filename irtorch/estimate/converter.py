@@ -14,7 +14,7 @@ class GRMMeta:
     item_category: pd.Categorical
     person_category: pd.Categorical
     n_grades: int
-    level_category: Optional[pd.Categorical] = None
+    level_category: pd.Categorical
 
     @property
     def n_items(self) -> int:
