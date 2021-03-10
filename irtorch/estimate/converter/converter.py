@@ -1,8 +1,9 @@
 from typing import Optional
 
-from .inputs import InputDFs, inputs_from_df
+from irtorch.estimate.entities import InputDFs, OutputDFs
 from .meta import GRMMeta
-from .outputs import OutputDFs, make_output_dfs
+from .inputs import inputs_from_df
+from .outputs import make_output_dfs
 from irtorch.estimate.model.data import GRMInputs, GRMOutputs
 
 

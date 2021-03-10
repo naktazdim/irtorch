@@ -1,30 +1,11 @@
 from itertools import product
-from pathlib import Path
-from dataclasses import dataclass
-from typing import Optional
 
 import numpy as np
 import pandas as pd
 
 from .meta import GRMMeta
+from irtorch.estimate.entities import OutputDFs
 from irtorch.estimate.model import GRMOutputs
-
-
-@dataclass()
-class OutputDFs:
-    a: pd.DataFrame
-    b: pd.DataFrame
-    t: pd.DataFrame
-    level: Optional[pd.DataFrame] = None
-
-    def to_csvs(self, dir_path: str):
-        dir_path = Path(dir_path)
-        dir_path.mkdir(parents=True, exist_ok=True)
-        self.a.to_csv(dir_path / "a.csv", index=False)
-        self.b.to_csv(dir_path / "b.csv", index=False)
-        self.t.to_csv(dir_path / "t.csv", index=False)
-        if self.level is not None:
-            self.level.to_csv(dir_path / "b_prior.csv", index=False)
 
 
 def make_output_dfs(outputs: GRMOutputs, meta: GRMMeta) -> OutputDFs:

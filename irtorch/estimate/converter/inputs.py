@@ -1,21 +1,11 @@
-from typing import Tuple, Optional
-from dataclasses import dataclass
+from typing import Tuple
 
 import numpy as np
 import pandas as pd
 
 from .meta import GRMMeta
+from irtorch.estimate.entities import InputDFs
 from irtorch.estimate.model import GRMInputs, GRMShapes
-
-
-@dataclass()
-class InputDFs:
-    """
-    response_df: columns=["item", "person", "response"]
-    level_df: columns=["item", "level"]
-    """
-    response_df: pd.DataFrame
-    level_df: Optional[pd.DataFrame] = None
 
 
 def inputs_from_df(input_dfs: InputDFs) -> Tuple[GRMMeta, GRMInputs]:
