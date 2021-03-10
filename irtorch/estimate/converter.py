@@ -5,7 +5,7 @@ from itertools import product
 import numpy as np
 import pandas as pd
 
-from irtorch.estimate.entities import InputDFs, OutputDFs
+from irtorch.estimate.entities import Dataset, Predictions
 from irtorch.estimate.model.data import GRMInputs, GRMOutputs, GRMShapes
 
 
@@ -33,8 +33,8 @@ class Converter(object):
     def __init__(self):
         self.meta = None  # type: Optional[GRMMeta]
 
-    def inputs_from_dfs(self, input_dfs: InputDFs) -> GRMInputs:
-        response_df, level_df = input_dfs.response_df, input_dfs.level_df
+    def inputs_from_dfs(self, dataset: Dataset) -> GRMInputs:
+        response_df, level_df = dataset.response_df, dataset.level_df
         if level_df is None:
             level_df = pd.DataFrame(columns=["item", "level"])
 
@@ -83,7 +83,7 @@ class Converter(object):
             level_df.level.cat.codes.values
         )
 
-    def outputs_to_dfs(self, outputs: GRMOutputs) -> OutputDFs:
+    def outputs_to_dfs (self, outputs: GRMOutputs) -> Predictions:
         assert outputs.a_array.shape == (self.meta.n_items,)
         assert outputs.b_array.shape == (self.meta.n_items, self.meta.n_grades - 1)
         assert outputs.t_array.shape == (self.meta.n_persons,)
@@ -104,4 +104,4 @@ class Converter(object):
             .assign(mean=outputs.level_mean_array.flatten(),
                     std=outputs.level_std_array.flatten())
 
-        return OutputDFs(a_df, b_df, t_df, level_df)
+        return Predictions(a_df, b_df, t_df, level_df)

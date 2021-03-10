@@ -6,7 +6,7 @@ import pandas as pd
 
 
 @dataclass()
-class InputDFs:
+class Dataset:
     """
     response_df: columns=["item", "person", "response"]
     level_df: columns=["item", "level"]
@@ -16,7 +16,7 @@ class InputDFs:
 
 
 @dataclass()
-class OutputDFs:
+class Predictions:
     a: pd.DataFrame
     b: pd.DataFrame
     t: pd.DataFrame

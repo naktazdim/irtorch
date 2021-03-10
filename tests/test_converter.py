@@ -2,14 +2,14 @@ import numpy as np
 import pandas as pd
 
 from irtorch.estimate.converter import Converter
-from irtorch.estimate.entities import InputDFs
+from irtorch.estimate.entities import Dataset
 from irtorch.estimate.model import GRMOutputs
 from tests.util import df, array
 
 
 def test_converter():
     converter = Converter()
-    input_dfs = InputDFs(
+    input_dfs = Dataset(
         df("input", "response.csv"),
         df("input", "level.csv"),
     )
