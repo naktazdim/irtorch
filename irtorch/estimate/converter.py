@@ -13,20 +13,11 @@ from irtorch.estimate.model.data import GRMInputs, GRMOutputs, GRMShapes
 class GRMMeta:
     item_category: pd.Categorical
     person_category: pd.Categorical
-    n_grades: int
     level_category: pd.Categorical
-
-    @property
-    def n_items(self) -> int:
-        return len(self.item_category.categories)
-
-    @property
-    def n_persons(self) -> int:
-        return len(self.person_category.categories)
-
-    @property
-    def n_levels(self) -> Optional[int]:
-        return None if self.level_category is None else len(self.level_category.categories)
+    n_items: int
+    n_persons: int
+    n_grades: int
+    n_levels: int
 
 
 class Converter(object):
@@ -63,23 +54,23 @@ class Converter(object):
         level_df["level"] = level_df.level.fillna("_unknown").astype({"level": "category"})
         level_category = level_df.level.dtype
 
+        n_items = len(item_category.categories)
+        n_persons = len(person_category.categories)
+        n_responses = len(response_df)
+        n_grades = response_df.response.max()
+        n_levels = len(level_category.categories)
+
         self.meta = GRMMeta(
             item_category,
             person_category,
-            response_df.response.max(),
-            level_category
+            level_category,
+            n_items, n_persons, n_grades, n_levels
         )
         return GRMInputs(
             np.c_[response_df.item.cat.codes.values,
                   response_df.person.cat.codes.values,
                   response_df.response.values],
-            GRMShapes(
-                len(item_category.categories),
-                len(person_category.categories),
-                self.meta.n_grades,
-                len(response_df),
-                len(level_category.categories)
-            ),
+            GRMShapes(n_items, n_persons, n_grades, n_responses, n_levels),
             level_df.level.cat.codes.values
         )
 
