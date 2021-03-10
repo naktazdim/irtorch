@@ -41,7 +41,7 @@ def inputs_from_df(input_dfs: InputDFs) -> Tuple[GRMMeta, GRMInputs]:
     level_df = pd.merge(
         item_category.categories.to_frame(name="item"),
         level_df
-            .drop_duplicates(subset="item")
+            .drop_duplicates(subset="item", keep="first")
             .astype({"item": item_category}),
         how="left"
     )
