@@ -3,6 +3,7 @@ import argparse
 import pandas as pd
 
 from irtorch import estimate
+from irtorch.estimate.entities import Dataset
 
 
 def main():
@@ -16,14 +17,17 @@ def main():
     p.add_argument("-l", "--log-dir", type=str, default=".")
     args = p.parse_args()
 
-    estimate(
+    dataset = Dataset(
         pd.read_csv(args.response),
+        pd.read_csv(args.level) if args.level else None,
+    )
+    estimate(
+        dataset,
         n_iter=args.n_iter,
         batch_size=args.batch_size,
         patience=args.patience,
         out_dir=args.out_dir,
         log_dir=args.log_dir,
-        level_df=pd.read_csv(args.level) if args.level else None,
     )
 
 

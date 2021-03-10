@@ -1,5 +1,4 @@
 import numpy as np
-import pandas as pd
 import pytorch_lightning as pl
 from pytorch_lightning.callbacks import EarlyStopping
 
@@ -23,16 +22,15 @@ class OutputBestEstimates(pl.Callback):
 
 
 def estimate(
-        response_df: pd.DataFrame,
+        dataset: Dataset,
         out_dir: str,
         log_dir: str,
         n_iter: int,
         batch_size: int,
         patience: int = None,
-        level_df: pd.DataFrame = None,
 ):
     converter = Converter()
-    grm_inputs = converter.inputs_from_dfs(Dataset(response_df, level_df))
+    grm_inputs = converter.inputs_from_dfs(dataset)
     estimator = GRMEstimator(grm_inputs, batch_size)
     callbacks = [OutputBestEstimates(out_dir, converter, estimator)]
     if patience:
