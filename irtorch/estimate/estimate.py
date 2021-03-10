@@ -6,6 +6,7 @@ import pytorch_lightning as pl
 from pytorch_lightning.callbacks import EarlyStopping
 
 from irtorch.estimate.entities import Dataset
+from irtorch.estimate.model.data import GRMInputs
 from irtorch.estimate.converter import Converter
 
 from irtorch.estimate.model import GradedResponseModel
@@ -13,13 +14,10 @@ from irtorch.estimate.model import GradedResponseModel
 
 class GRMEstimator(pl.LightningModule):
     def __init__(self,
-                 input_dfs: Dataset,
+                 inputs: GRMInputs,
                  batch_size: int,
                  ):
         super(GRMEstimator, self).__init__()
-
-        self.converter = Converter()
-        inputs = self.converter.inputs_from_dfs(input_dfs)
 
         self.model = GradedResponseModel(inputs.shapes, inputs.level_array)
         self.batch_size = batch_size
@@ -52,14 +50,11 @@ class GRMEstimator(pl.LightningModule):
             "log": {"log_posterior": -self.loss_total}
         }
 
-    def output_results(self, dir_path: str):
-        output_dfs = self.converter.outputs_to_dfs(self.model.grm_outputs())
-        output_dfs.to_csvs(dir_path)
-
 
 class OutputBestEstimates(pl.Callback):
-    def __init__(self, dir_path: str, estimator: GRMEstimator):
+    def __init__(self, dir_path: str, converter: Converter, estimator: GRMEstimator):
         self.dir_path = dir_path
+        self.converter = converter
         self.estimator = estimator
         self.best = -np.inf
 
@@ -67,7 +62,7 @@ class OutputBestEstimates(pl.Callback):
         log_posterior = trainer.callback_metrics.get("log_posterior")
         if log_posterior > self.best:
             self.best = log_posterior
-            self.estimator.output_results(self.dir_path)
+            self.converter.outputs_to_dfs(self.estimator.model.grm_outputs()).to_csvs(self.dir_path)
 
 
 def estimate(
@@ -79,8 +74,10 @@ def estimate(
         patience: int = None,
         level_df: pd.DataFrame = None,
 ):
-    estimator = GRMEstimator(Dataset(response_df, level_df), batch_size)
-    callbacks = [OutputBestEstimates(out_dir, estimator)]
+    converter = Converter()
+    grm_inputs = converter.inputs_from_dfs(Dataset(response_df, level_df))
+    estimator = GRMEstimator(grm_inputs, batch_size)
+    callbacks = [OutputBestEstimates(out_dir, converter, estimator)]
     if patience:
         callbacks.append(
             EarlyStopping(
