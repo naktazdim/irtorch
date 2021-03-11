@@ -38,10 +38,9 @@ def estimate(
                                        mode="max",
                                        patience=patience))
 
-    trainer = pl.Trainer(
+    pl.Trainer(
         default_root_dir=log_dir,
         callbacks=callbacks,
         checkpoint_callback=False,
         max_epochs=n_iter
-    )
-    trainer.fit(estimator)
+    ).fit(estimator)
