@@ -34,13 +34,9 @@ def estimate(
     estimator = GRMEstimator(grm_inputs, batch_size)
     callbacks = [OutputBestEstimates(out_dir, converter, estimator)]
     if patience:
-        callbacks.append(
-            EarlyStopping(
-                monitor="log_posterior",
-                mode="max",
-                patience=patience
-            )
-        )
+        callbacks.append(EarlyStopping(monitor="log_posterior",
+                                       mode="max",
+                                       patience=patience))
 
     trainer = pl.Trainer(
         default_root_dir=log_dir,
