@@ -1,6 +1,7 @@
 import numpy as np
 import pytorch_lightning as pl
 from pytorch_lightning.callbacks import EarlyStopping
+import fire
 
 from irtorch.entities import Dataset
 from irtorch.converter import Converter
@@ -44,3 +45,26 @@ def estimate(
         checkpoint_callback=False,
         max_epochs=n_iter
     ).fit(estimator)
+
+
+def estimate_cli(
+        response: str,
+        level: str = None,
+        n_iter: int = 1000,
+        batch_size: int = 1000,
+        patience: int = None,
+        out_dir: str = ".",
+        log_dir: str = "."
+):
+    estimate(
+        Dataset.from_csvs(response, level),
+        n_iter=n_iter,
+        batch_size=batch_size,
+        patience=patience,
+        out_dir=out_dir,
+        log_dir=log_dir,
+    )
+
+
+if __name__ == "__main__":
+    fire.Fire(estimate_cli)
