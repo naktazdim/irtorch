@@ -3,8 +3,7 @@ import pytorch_lightning as pl
 from pytorch_lightning.callbacks import EarlyStopping
 import fire
 
-from irtorch.entities import Dataset
-from irtorch.converter import Converter
+from irtorch.dataset import Dataset, Converter
 from irtorch.model import GRMEstimator
 
 

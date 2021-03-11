@@ -1,7 +1,7 @@
 import tempfile
 
 from irtorch.estimate import estimate
-from irtorch.entities import Dataset
+from irtorch.dataset.entities import Dataset
 from tests.util import df
 
 

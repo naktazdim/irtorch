@@ -5,7 +5,7 @@ from itertools import product
 import numpy as np
 import pandas as pd
 
-from irtorch.entities import Dataset, Predictions
+from irtorch.dataset.entities import Dataset, Predictions
 from irtorch.model.data import GRMInputs, GRMOutputs, GRMShapes
 
 

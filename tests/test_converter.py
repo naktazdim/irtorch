@@ -1,8 +1,8 @@
 import numpy as np
 import pandas as pd
 
-from irtorch.converter import Converter
-from irtorch.entities import Dataset
+from irtorch.dataset.converter import Converter
+from irtorch.dataset.entities import Dataset
 from irtorch.model.data import GRMOutputs
 from tests.util import df, array
 
