@@ -2,9 +2,9 @@ import numpy as np
 import pytorch_lightning as pl
 from pytorch_lightning.callbacks import EarlyStopping
 
-from irtorch.estimate.entities import Dataset
-from irtorch.estimate.converter import Converter
-from irtorch.estimate.model import GRMEstimator
+from irtorch.entities import Dataset
+from irtorch.converter import Converter
+from irtorch.model import GRMEstimator
 
 
 class OutputBestEstimates(pl.Callback):

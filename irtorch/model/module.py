@@ -4,9 +4,9 @@ import torch.nn as nn
 import torch.nn.functional as F
 import numpy as np
 
-from irtorch.estimate.model.likelihood import log_likelihood
-from irtorch.estimate.model.prior import Normal, InverseGamma
-from irtorch.estimate.model.data import GRMShapes, GRMOutputs
+from irtorch.model.likelihood import log_likelihood
+from irtorch.model.prior import Normal, InverseGamma
+from irtorch.model.data import GRMShapes, GRMOutputs
 
 
 def _parameter(*size: int) -> nn.Parameter:

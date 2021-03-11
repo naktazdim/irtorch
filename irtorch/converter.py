@@ -5,8 +5,8 @@ from itertools import product
 import numpy as np
 import pandas as pd
 
-from irtorch.estimate.entities import Dataset, Predictions
-from irtorch.estimate.model.data import GRMInputs, GRMOutputs, GRMShapes
+from irtorch.entities import Dataset, Predictions
+from irtorch.model.data import GRMInputs, GRMOutputs, GRMShapes
 
 
 @dataclass()

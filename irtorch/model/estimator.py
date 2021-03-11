@@ -2,8 +2,8 @@ import torch
 from torch.utils.data import DataLoader, TensorDataset
 import pytorch_lightning as pl
 
-from irtorch.estimate.model.data import GRMInputs
-from irtorch.estimate.model.module import GradedResponseModel
+from irtorch.model.data import GRMInputs
+from irtorch.model.module import GradedResponseModel
 
 
 class GRMEstimator(pl.LightningModule):

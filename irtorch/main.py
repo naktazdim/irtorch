@@ -1,7 +1,7 @@
 import fire
 
 from irtorch import estimate
-from irtorch.estimate.entities import Dataset
+from irtorch.entities import Dataset
 
 
 def main(

@@ -1,9 +1,9 @@
 import numpy as np
 import pandas as pd
 
-from irtorch.estimate.converter import Converter
-from irtorch.estimate.entities import Dataset
-from irtorch.estimate.model import GRMOutputs
+from irtorch.converter import Converter
+from irtorch.entities import Dataset
+from irtorch.model.data import GRMOutputs
 from tests.util import df, array
 
 
