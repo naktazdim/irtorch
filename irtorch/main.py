@@ -1,4 +1,3 @@
-import pandas as pd
 import fire
 
 from irtorch import estimate
@@ -15,10 +14,7 @@ def main(
         log_dir: str = "."
 ):
     estimate(
-        Dataset(
-            pd.read_csv(response),
-            pd.read_csv(level) if level else None
-        ),
+        Dataset.from_csvs(response, level),
         n_iter=n_iter,
         batch_size=batch_size,
         patience=patience,

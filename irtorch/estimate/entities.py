@@ -14,6 +14,15 @@ class Dataset:
     response_df: pd.DataFrame
     level_df: Optional[pd.DataFrame] = None
 
+    @classmethod
+    def from_csvs(cls,
+                  response_df_path: str,
+                  level_df_path: str = None):
+        return Dataset(
+            pd.read_csv(response_df_path),
+            pd.read_csv(level_df_path) if level_df_path else None
+        )
+
 
 @dataclass()
 class Predictions:
