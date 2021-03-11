@@ -14,12 +14,11 @@ def main(
         out_dir: str = ".",
         log_dir: str = "."
 ):
-    dataset = Dataset(
-        pd.read_csv(response),
-        pd.read_csv(level) if level else None
-    )
     estimate(
-        dataset,
+        Dataset(
+            pd.read_csv(response),
+            pd.read_csv(level) if level else None
+        ),
         n_iter=n_iter,
         batch_size=batch_size,
         patience=patience,
