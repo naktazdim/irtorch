@@ -22,7 +22,7 @@ class GRMMeta:
 
 class Converter(object):
     def __init__(self):
-        self.meta = None  # type: Optional[GRMMeta]
+        self.meta: Optional[GRMMeta] = None
 
     def inputs_from_dfs(self, dataset: Dataset) -> GRMInputs:
         response_df, level_df = dataset.response_df, dataset.level_df
