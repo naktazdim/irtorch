@@ -29,7 +29,7 @@ class Predictions:
     a: pd.DataFrame
     b: pd.DataFrame
     t: pd.DataFrame
-    level: Optional[pd.DataFrame] = None
+    level: pd.DataFrame
 
     def to_csvs(self, dir_path: str):
         dir_path = Path(dir_path)
