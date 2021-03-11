@@ -5,8 +5,8 @@ Graded Response Model のパラメータ推定 (MAP推定)
 # usage  
 ```sh
 $ python main.py RESPONSE_CSV [--level LEVEL_CSV]
-                 [-n N_ITER] [-p PATIENCE] [-b BATCH_SIZE] 
-                 [-o OUT_DIR] [-l LOG_DIR]
+                 [--n-iter N_ITER] [--patience PATIENCE] [--batch_size BATCH_SIZE] 
+                 [--out-dir OUT_DIR] [--log-dir LOG_DIR]
 ```
 
 
