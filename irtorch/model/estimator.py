@@ -5,6 +5,7 @@ import torch
 from torch.utils.data import DataLoader, TensorDataset
 import pytorch_lightning as pl
 from pytorch_lightning.callbacks import EarlyStopping
+from pytorch_lightning.loggers import TensorBoardLogger
 
 from irtorch.model.data import GRMInputs, GRMOutputs
 from irtorch.model.module import GradedResponseModel
@@ -20,7 +21,6 @@ class GRMEstimator(pl.LightningModule):
         self.model = GradedResponseModel(inputs.shapes, inputs.level_array)
         self.batch_size = batch_size
         self.dataset = TensorDataset(torch.tensor(inputs.response_array).long())
-        self.loss_total = 0.0
 
     def configure_optimizers(self):
         return torch.optim.Adam(self.model.parameters())
@@ -29,24 +29,14 @@ class GRMEstimator(pl.LightningModule):
         return self.model.forward(indices)
 
     def training_step(self, batch, batch_idx):
-        loss = self.forward(*batch)
-        self.loss_total += loss
-        return {"loss": loss}
+        return self.forward(*batch)
 
-    def on_epoch_end(self):
-        self.loss_total = 0.0
+    def training_epoch_end(self, outputs):
+        self.log("log_posterior",
+                 -sum([output["loss"] for output in outputs]))
 
     def train_dataloader(self):
         return DataLoader(self.dataset, batch_size=self.batch_size, shuffle=True)
-
-    def validation_step(self):
-        pass  # dummy implementation to enable validation
-
-    def validation_epoch_end(self, _):
-        return {
-            "log_posterior": -self.loss_total,
-            "log": {"log_posterior": -self.loss_total}
-        }
 
 
 class OutputBestEstimates(pl.Callback):
@@ -55,8 +45,8 @@ class OutputBestEstimates(pl.Callback):
         self.callback = callback
         self.best = -np.inf
 
-    def on_validation_end(self, trainer: pl.Trainer, _):
-        log_posterior = trainer.callback_metrics.get("log_posterior")
+    def on_train_epoch_end(self, trainer: pl.Trainer, *args):
+        log_posterior = trainer.callback_metrics["log_posterior"]
         if log_posterior > self.best:
             self.best = log_posterior
             self.callback(self.estimator.model.grm_outputs())
@@ -78,7 +68,7 @@ def estimate(
                                        patience=patience))
 
     pl.Trainer(
-        default_root_dir=log_dir,
+        logger=TensorBoardLogger(log_dir, name="lightning_logs", default_hp_metric=False),
         callbacks=callbacks,
         checkpoint_callback=False,
         max_epochs=n_iter
