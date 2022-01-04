@@ -1,4 +1,5 @@
 from typing import Callable, Any
+import warnings
 
 import numpy as np
 import torch
@@ -67,9 +68,16 @@ def estimate(
                                        mode="max",
                                        patience=patience))
 
-    pl.Trainer(
+    trainer = pl.Trainer(
         logger=TensorBoardLogger(log_dir, name="lightning_logs", default_hp_metric=False),
         callbacks=callbacks,
         checkpoint_callback=False,
         max_epochs=n_iter
-    ).fit(estimator)
+    )
+    with warnings.catch_warnings():
+        # 「DataLoaderのnum_workersが少ない」というUserWarningを無視 (ただのTensorDatasetなので並列化する意味がない)
+        warnings.filterwarnings("ignore",
+                                category=UserWarning,
+                                message=".*num_workers",
+                                module="pytorch_lightning.trainer.data_loading")
+        trainer.fit(estimator)
