@@ -1,57 +1,55 @@
-import pytest
-
 import numpy as np
 import pandas as pd
 
-from irtorch.estimate.converter import GRMInputs, GRMOutputs
+from irtorch.dataset.converter import Converter
+from irtorch.dataset.entities import Dataset
+from irtorch.model.data import GRMOutputs
 from tests.util import df, array
 
 
-@pytest.fixture()
-def inputs() -> GRMInputs:
-    return GRMInputs.from_df(df("input", "response.csv"), df("input", "level.csv"))
-
-
-@pytest.fixture()
-def outputs() -> GRMOutputs:
-    inputs = GRMInputs.from_df(df("input", "response.csv"), df("input", "level.csv"))
-    return GRMOutputs(
-        inputs.meta,
-        array("input", "a_array.csv"),
-        array("input", "b_array.csv"),
-        array("input", "t_array.csv")
+def test_converter():
+    converter = Converter()
+    input_dfs = Dataset(
+        df("input", "response.csv"),
+        df("input", "level.csv"),
     )
+    grm_inputs = converter.inputs_from_dfs(input_dfs)
 
-
-def test_make_response_array(inputs):
     np.testing.assert_array_equal(
-        inputs.response_array,
-        array("output", "response_array.csv", dtype=int)
+        grm_inputs.response_array,
+        array("array", "response_array.csv")
     )
 
+    grm_outputs = GRMOutputs(
+        array("array", "a_array.csv"),
+        array("array", "b_array.csv"),
+        array("array", "t_array.csv"),
+        array("array", "level_mean_array.csv"),
+        array("array", "level_mean_array.csv")
+    )
+    output_dfs = converter.outputs_to_dfs(grm_outputs)
 
-def test_make_a_df(outputs):
     pd.testing.assert_frame_equal(
-        outputs.make_a_df(),
+        output_dfs.a,
         df("output", "a.csv"),
         check_dtype=False,
         check_categorical=False
     )
-
-
-def test_make_b_df(outputs):
     pd.testing.assert_frame_equal(
-        outputs.make_b_df(),
+        output_dfs.b,
         df("output", "b.csv"),
         check_dtype=False,
         check_categorical=False
     )
-
-
-def test_make_t_df(outputs):
     pd.testing.assert_frame_equal(
-        outputs.make_t_df(),
+        output_dfs.t,
         df("output", "t.csv"),
+        check_dtype=False,
+        check_categorical=False
+    )
+    pd.testing.assert_frame_equal(
+        output_dfs.level,
+        df("output", "b_prior.csv"),
         check_dtype=False,
         check_categorical=False
     )

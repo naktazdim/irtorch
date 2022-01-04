@@ -3,3 +3,4 @@ pandas
 torch
 pytorch_lightning
 pytest
+fire
