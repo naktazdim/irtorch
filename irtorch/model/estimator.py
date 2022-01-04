@@ -71,7 +71,7 @@ def estimate(
     trainer = pl.Trainer(
         logger=TensorBoardLogger(log_dir, name="lightning_logs", default_hp_metric=False),
         callbacks=callbacks,
-        checkpoint_callback=False,
+        enable_checkpointing=False,
         max_epochs=n_iter
     )
     with warnings.catch_warnings():
