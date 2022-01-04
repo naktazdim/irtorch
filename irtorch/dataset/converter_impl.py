@@ -67,8 +67,10 @@ def inputs_from_dfs(dataset: Dataset) -> Tuple[GRMMeta, GRMInputs]:
               response_df.person.cat.codes.values,
               response_df.response.values],
         GRMShapes(n_items, n_persons, n_grades, n_responses, n_levels),
-        level_df.level.cat.codes.values
+        level_df.level.cat.codes.values.copy()
     )
+    # ↑第3引数は、DataFrameのvalues (への参照) を直接返さないようにcopy()
+    # ↑(第1引数はnp.c_[]で新たなndarrayが作られるのでcopy()不要)
     return meta, inputs
 
 
